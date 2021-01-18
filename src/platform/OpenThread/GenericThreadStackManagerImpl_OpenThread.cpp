@@ -750,13 +750,13 @@ CHIP_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetAndLogThread
                         neighbor->mExtAddress.m8[3], neighbor->mExtAddress.m8[4], neighbor->mExtAddress.m8[5],
                         neighbor->mExtAddress.m8[6], neighbor->mExtAddress.m8[7], neighbor->mRloc16, neighbor->mAge,
                         neighbor->mLinkQualityIn, neighbor->mAverageRssi, neighbor->mLastRssi, neighbor->mLinkFrameCounter,
-                        neighbor->mMleFrameCounter, neighbor->mRxOnWhenIdle ? 'Y' : 'n', neighbor->mSecureDataRequest ? 'Y' : 'n',
-#if OPENTHREA_API_VERSION
-                        neighbor->mFullThreadDevice ? 'Y' : 'n',
+                        neighbor->mMleFrameCounter, neighbor->mRxOnWhenIdle ? 'Y' : 'n',
+#if (OPENTHREAD_API_VERSION < 30)
+                        neighbor->mSecureDataRequest ? 'Y' : 'n',
 #else
-                        'n',
+                        'Y',
 #endif
-
+                        neighbor->mFullThreadDevice ? 'Y' : 'n',
                         neighbor->mFullNetworkData ? 'Y' : 'n', neighbor->mIsChild ? 'Y' : 'n', printBuf);
     }
 
@@ -832,14 +832,6 @@ CHIP_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInstanc
     // method implementation if it chooses to.
     otErr = otSetStateChangedCallback(otInst, ImplClass::OnOpenThreadStateChange, NULL);
     VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
-
-    // Enable use of secure data requests.
-    {
-        otLinkModeConfig linkMode    = otThreadGetLinkMode(otInst);
-        linkMode.mSecureDataRequests = true;
-        otErr                        = otThreadSetLinkMode(otInst, linkMode);
-        VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
-    }
 
     // Enable automatic assignment of Thread advertised addresses.
 #if OPENTHREAD_CONFIG_IP6_SLAAC_ENABLE

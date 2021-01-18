@@ -1,6 +1,7 @@
 /*
  *
  *    Copyright (c) 2020 Project CHIP Authors
+ *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,9 +16,20 @@
  *    limitations under the License.
  */
 
+/** @file "main.cpp"
+ *
+ * Main application.
+ */
+
+/*****************************************************************************
+ *                    Includes Definitions
+ *****************************************************************************/
+
+// FreeRTOS
 #include "FreeRTOS.h"
 #include "task.h"
 
+// CHIP includes
 #include <lib/shell/shell.h>
 
 #include <lib/core/CHIPCore.h>
@@ -29,13 +41,18 @@
 
 #include <ChipShellCollection.h>
 
+// Qorvo CHIP library
 #include "qvCHIP.h"
 
 #if CHIP_ENABLE_OPENTHREAD
+// OpenThread includes
+#include <openthread/heap.h>
 extern "C" {
-#include <openthread/platform/platform-softdevice.h>
+#include "alarm_qorvo.h"
+#include "radio_qorvo.h"
+#include "random_qorvo.h"
 }
-#endif // CHIP_ENABLE_OPENTHREAD
+#endif //CHIP_ENABLE_OPENTHREAD
 
 using namespace chip;
 using namespace chip::Shell;
@@ -90,6 +107,16 @@ int main(void)
 {
     /* Initialize platform */
     qvCHIP_init();
+
+#if CHIP_ENABLE_OPENTHREAD
+    //Initialize Low level QPG OpenThread glue
+    qorvoAlarmInit();
+    qorvoRandomInit();
+    qorvoRadioInit();
+
+    // Use CHIP allocation functions
+    otHeapSetCAllocFree(CHIPPlatformMemoryCalloc, CHIPPlatformMemoryFree);
+#endif //CHIP_ENABLE_OPENTHREAD
 
     /* Launch shell task */
     StartShellTask();

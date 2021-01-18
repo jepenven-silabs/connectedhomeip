@@ -14,7 +14,9 @@
 
 import("//build/config/defaults.gni")
 import("//build_overrides/chip.gni")
+import("//build_overrides/openthread.gni")
 import("//build_overrides/qpg6100_sdk.gni")
+
 import("${qpg6100_sdk_build_root}/qpg6100_executable.gni")
 import("${qpg6100_sdk_build_root}/qpg6100_sdk.gni")
 
@@ -29,7 +31,9 @@ qpg6100_sdk("sdk") {
     "${examples_plat_dir}/project_include",
   ]
 
-  sources = [ "${examples_plat_dir}/project_include/CHIPProjectConfig.h" ]
+  sources = [
+    "${examples_plat_dir}/project_include/CHIPProjectConfig.h",
+    "${examples_plat_dir}/app/include/Service.h"]
 
   defines = []
   if (is_debug) {
@@ -46,22 +50,21 @@ qpg6100_executable("lock_app") {
 
   public_deps = [
     ":sdk",
+    "${chip_root}/examples/lock-app/lock-common",
     "${chip_root}/src/lib",
     "${chip_root}/src/setup_payload",
-
-    #    OpenThread to be enabled
-    #    https://github.com/project-chip/connectedhomeip/issues/293
-    #    "${chip_root}/third_party/openthread/platforms:libopenthread-platform",
-    #    "${chip_root}/third_party/openthread/platforms:libopenthread-platform-utils",
-    #    "${chip_root}/third_party/openthread/repo:libopenthread-cli-ftd",
-    #    "${chip_root}/third_party/openthread/repo:libopenthread-ftd",
+    "${chip_root}/third_party/openthread/platforms:libopenthread-platform",
+    "${chip_root}/third_party/openthread/platforms:libopenthread-platform-utils",
+    "${chip_root}/third_party/openthread/repo:libopenthread-cli-ftd",
+    "${chip_root}/third_party/openthread/repo:libopenthread-ftd",
   ]
 
   include_dirs += [
     "${qpg6100_project_dir}/include/",
     "${chip_root}/src/app/util",
     "${chip_root}/src/app/server",
-    "${examples_plat_dir}/",
+    "${examples_plat_dir}",
+    "${examples_plat_dir}/app/include",
   ]
 
   sources = [
@@ -69,12 +72,7 @@ qpg6100_executable("lock_app") {
     "src/BoltLockManager.cpp",
     "src/ZclCallbacks.cpp",
     "src/main.cpp",
-  ]
-
-  deps = [
-    "${chip_root}/examples/lock-app/lock-common",
-    "${chip_root}/src/lib",
-    "${chip_root}/src/setup_payload",
+    "${examples_plat_dir}/app/Service.cpp",
   ]
 
   output_dir = root_out_dir

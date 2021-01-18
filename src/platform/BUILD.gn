@@ -495,6 +495,8 @@ if (chip_device_platform != "none" && chip_device_platform != "external") {
       ]
 
       if (chip_enable_openthread) {
+        public_deps += [ "${openthread_root}:libopenthread-ftd" ]
+
         sources += [
           "OpenThread/OpenThreadUtils.cpp",
           "qpg6100/ThreadStackManagerImpl.cpp",

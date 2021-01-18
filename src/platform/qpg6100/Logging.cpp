@@ -106,7 +106,6 @@ void LogV(uint8_t module, uint8_t category, const char * msg, va_list v)
 extern "C" void LwIPLog(const char * msg, ...)
 {
     char formattedMsg[CHIP_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE];
-
     va_list v;
 
     va_start(v, msg);
@@ -126,15 +125,14 @@ extern "C" void LwIPLog(const char * msg, ...)
 }
 
 #if CHIP_DEVICE_CONFIG_ENABLE_THREAD
-// Implementation taken from openthread repo - examples\platforms\qpg6095
-#include "uart_qorvo.h"
 
 extern "C" void otPlatLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char * aFormat, ...)
 {
     char formattedMsg[CHIP_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE];
+    va_list v;
 
     va_start(v, aFormat);
-    size_t len = vsnprintf(formattedMsg, sizeof(formattedMsg), aFormat, v);
+    vsnprintf(formattedMsg, sizeof(formattedMsg), aFormat, v);
     va_end(v);
 
     qvCHIP_Printf(0x2, formattedMsg);
