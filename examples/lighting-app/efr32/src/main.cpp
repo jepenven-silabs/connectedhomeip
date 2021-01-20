@@ -137,7 +137,7 @@ int main(void)
         EFR32_LOG("ThreadStackMgr().InitThreadStack() failed");
         appError(ret);
     }
-
+    chip::DeviceLayer::ConnectivityMgr().SetBLEDeviceName("EFR32_LIGHT");
     ret = ConnectivityMgr().SetThreadDeviceType(ConnectivityManager::kThreadDeviceType_Router);
     if (ret != CHIP_NO_ERROR)
     {
