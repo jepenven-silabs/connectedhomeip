@@ -206,6 +206,14 @@ template("efr32_sdk") {
       ]
     }
 
+    if (defined(invoker.has_rgb_led)) {
+      if (invoker.has_rgb_led) {
+        _include_dirs += [
+          "${efr32_sdk_root}/platform/driver/leddrv/inc",
+        ]
+      }
+    }
+
     cflags = []
     foreach(include_dir, _include_dirs) {
       cflags += [ "-isystem" + rebase_path(include_dir, root_build_dir) ]
@@ -380,6 +388,16 @@ template("efr32_sdk") {
         ]
       }
     }
+
+    if (defined(invoker.has_rgb_led)) {
+      if (invoker.has_rgb_led) {
+        sources += [
+          "${efr32_sdk_root}/platform/driver/leddrv/src/sl_led.c",
+          "${efr32_sdk_root}/platform/driver/leddrv/src/sl_simple_rgbw_pwm_led.c",
+        ]
+      }
+    }
+
 
     if (efr32_family == "efr32mg12") {
       sources += [

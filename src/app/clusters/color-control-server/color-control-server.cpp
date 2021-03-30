@@ -1804,7 +1804,7 @@ static bool shouldExecuteIfOff(EndpointId endpoint, uint8_t optionMask, uint8_t 
     return (READBITS(options, EMBER_ZCL_COLOR_CONTROL_OPTIONS_EXECUTE_IF_OFF));
 }
 
-void emberAfColorControlClusterServerInitCallback(EndpointId endpoint)
+void emberAfColorControlClusterServerInitCallback(chip::EndpointId endpoint)
 {
 #ifdef EMBER_AF_PLUGIN_COLOR_CONTROL_SERVER_TEMP
     // 07-5123-07 (i.e. ZCL 7) 5.2.2.2.1.22 StartUpColorTemperatureMireds Attribute

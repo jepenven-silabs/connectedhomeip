@@ -1,6 +1,10 @@
 {
+<<<<<<< HEAD
   "writeTime": "Fri Mar 12 2021 15:19:34 GMT+0800 (China Standard Time)",
   "featureLevel": 11,
+=======
+  "featureLevel": 16,
+>>>>>>> wip
   "creator": "zap",
   "keyValuePairs": [
     {
@@ -1818,5 +1822,10 @@
       "endpointId": 1,
       "networkId": 0
     }
+<<<<<<< HEAD
   ]
+=======
+  ],
+  "log": []
+>>>>>>> wip
 }

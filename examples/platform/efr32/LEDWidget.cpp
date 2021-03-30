@@ -21,20 +21,33 @@
 
 #include "bsp.h"
 
+#ifdef HAS_RGB_LED
+#include "rgbled.h"
+#include "sl_simple_rgbw_pwm_led.h"
+
+#endif
+
 #include <platform/CHIPDeviceLayer.h>
+
 
 void LEDWidget::InitGpio(void)
 {
     // Sets gpio pin mode for ALL board Leds.
+    #ifdef HAS_RGB_LED
+    rgb_led_init();
+    #else
     BSP_LedsInit();
+    #endif
+
 }
 
-void LEDWidget::Init(int ledNum)
+void LEDWidget::Init(int ledNum, bool isRGB)
 {
     mLastChangeTimeUS = 0;
     mBlinkOnTimeMS    = 0;
     mBlinkOffTimeMS   = 0;
     mLedNum           = ledNum;
+    mIsRGB            = isRGB;
 
     Set(false);
 }
@@ -49,6 +62,22 @@ void LEDWidget::Set(bool state)
     mLastChangeTimeUS = mBlinkOnTimeMS = mBlinkOffTimeMS = 0;
     DoSet(state);
 }
+
+#ifdef HAS_RGB_LED
+void LEDWidget::Set(LedColor_e color)
+{
+    if (color >= COLOR_COUNT) {
+        return;
+    }
+    mLastChangeTimeUS = mBlinkOnTimeMS = mBlinkOffTimeMS = 0;
+    mCurrentColor = color;
+    rgb_led_set(0xff, mColorTable[color].red_level, mColorTable[color].green_level, mColorTable[color].blue_level);
+}
+void LEDWidget::Set(uint16_t x, uint16_t y)
+{
+
+}
+#endif
 
 void LEDWidget::Blink(uint32_t changeRateMS)
 {
@@ -82,12 +111,37 @@ void LEDWidget::DoSet(bool state)
 {
     mState = state;
 
-    if (state)
+    if (mIsRGB)
     {
-        BSP_LedSet(mLedNum);
+        #ifdef HAS_RGB_LED
+        uint8_t mask = (state) ? 0xFF : 0x00;
+        rgb_led_set(mask, mColorTable[mCurrentColor].red_level, mColorTable[mCurrentColor].green_level, mColorTable[mCurrentColor].blue_level);
+        #endif
     }
     else
     {
-        BSP_LedClear(mLedNum);
+        if (state)
+        {
+            BSP_LedSet(mLedNum);
+        }
+        else
+        {
+            BSP_LedClear(mLedNum);
+        }
     }
+
 }
+
+// RGBColor_t LEDWidget::ConvertXYToRGB(uint16_t x, uint16_t y)
+// {
+//     // if (rgb == nullptr) {
+//     //     return;
+//     // }
+//     // if (y == 0) return [0,0,0];
+// 	// return [
+// 	// 	normalize((x*yy)/y),
+// 	// 	normalize(yy),
+// 	// 	normalize(((1-x-y)*yy)/y)
+// 	// ];
+//     return
+// }
