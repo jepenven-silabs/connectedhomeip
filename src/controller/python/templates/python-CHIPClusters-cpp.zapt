@@ -114,21 +114,21 @@ void chip_ime_SetFailureResponseDelegate(FailureResponseDelegate delegate)
 // Cluster {{asUpperCamelCase name}}
 
 {{#chip_cluster_commands}}
-chip::ChipError::StorageType chip_ime_AppendCommand_{{asUpperCamelCase clusterName}}_{{asUpperCamelCase name}}(chip::Controller::Device * device, chip::EndpointId ZCLendpointId, chip::GroupId{{#chip_cluster_command_arguments}}, {{#if (isString type)}}const uint8_t * {{asLowerCamelCase label}}, uint32_t {{asLowerCamelCase label}}_Len{{else}}{{chipType}} {{asLowerCamelCase label}}{{/if}}{{/chip_cluster_command_arguments}})
+chip::ChipError::StorageType chip_ime_AppendCommand_{{asUpperCamelCase clusterName}}_{{asUpperCamelCase name}}(chip::Controller::Device * device, chip::EndpointId ZCLendpointId, chip::GroupId ZCLgroupId {{#chip_cluster_command_arguments}}, {{#if (isString type)}}const uint8_t * {{asLowerCamelCase label}}, uint32_t {{asLowerCamelCase label}}_Len{{else}}{{chipType}} {{asLowerCamelCase label}}{{/if}}{{/chip_cluster_command_arguments}})
 {
     VerifyOrReturnError(device != nullptr, CHIP_ERROR_INVALID_ARGUMENT.AsInteger());
     chip::Controller::{{asUpperCamelCase clusterName}}Cluster cluster;
-    cluster.Associate(device, ZCLendpointId);
+    cluster.Associate(device, ZCLendpointId, ZCLgroupId);
     return cluster.{{asUpperCamelCase name}}(nullptr, nullptr{{#chip_cluster_command_arguments}}, {{#if (isString type)}}chip::ByteSpan({{asLowerCamelCase label}}, {{asLowerCamelCase label}}_Len){{else}}{{asLowerCamelCase label}}{{/if}}{{/chip_cluster_command_arguments}}).AsInteger();
 }
 {{/chip_cluster_commands}}
 
 {{#chip_server_cluster_attributes}}
-chip::ChipError::StorageType chip_ime_ReadAttribute_{{asUpperCamelCase parent.name}}_{{asUpperCamelCase name}}(chip::Controller::Device * device, chip::EndpointId ZCLendpointId, chip::GroupId /* ZCLgroupId */)
+chip::ChipError::StorageType chip_ime_ReadAttribute_{{asUpperCamelCase parent.name}}_{{asUpperCamelCase name}}(chip::Controller::Device * device, chip::EndpointId ZCLendpointId, chip::GroupId ZCLgroupId )
 {
     VerifyOrReturnError(device != nullptr, CHIP_ERROR_INVALID_ARGUMENT.AsInteger());
     chip::Controller::{{asUpperCamelCase parent.name}}Cluster cluster;
-    cluster.Associate(device, ZCLendpointId);
+    cluster.Associate(device, ZCLendpointId, ZCLgroupId);
 {{#if isList}}
     return cluster.ReadAttribute{{asUpperCamelCase name}}(g{{asUpperCamelCase parent.name}}{{asUpperCamelCase name}}ListAttributeCallback.Cancel(), gDefaultFailureCallback.Cancel()).AsInteger();
 {{else}}
@@ -152,11 +152,11 @@ chip::ChipError::StorageType chip_ime_ConfigureAttribute_{{asUpperCamelCase pare
 {{/if}}
 
 {{#if isWritableAttribute}}
-chip::ChipError::StorageType chip_ime_WriteAttribute_{{asUpperCamelCase parent.name}}_{{asUpperCamelCase name}}(chip::Controller::Device * device, chip::EndpointId ZCLendpointId, chip::GroupId, {{#if (isString type)}} uint8_t * value, size_t len{{else}}{{chipType}} value{{/if}})
+chip::ChipError::StorageType chip_ime_WriteAttribute_{{asUpperCamelCase parent.name}}_{{asUpperCamelCase name}}(chip::Controller::Device * device, chip::EndpointId ZCLendpointId, chip::GroupId ZCLgroupId, {{#if (isString type)}} uint8_t * value, size_t len{{else}}{{chipType}} value{{/if}})
 {
     VerifyOrReturnError(device != nullptr, CHIP_ERROR_INVALID_ARGUMENT.AsInteger());
     chip::Controller::{{asUpperCamelCase parent.name}}Cluster cluster;
-    cluster.Associate(device, ZCLendpointId);
+    cluster.Associate(device, ZCLendpointId, ZCLgroupId);
     return cluster.WriteAttribute{{asUpperCamelCase name}}(gDefaultSuccessCallback.Cancel(), gDefaultFailureCallback.Cancel(), {{#if (isString type)}} chip::ByteSpan(value, len){{else}}value{{/if}}).AsInteger();
 }
 {{/if}}

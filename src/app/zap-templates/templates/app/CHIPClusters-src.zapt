@@ -64,7 +64,6 @@ namespace Controller {
 
 // TODO(#4502): onCompletion is not used by IM for now.
 // TODO(#4503): length should be passed to commands when byte string is in argument list.
-// TODO(#4503): Commands should take group id as an argument.
 
 {{#chip_client_clusters}}
 
@@ -83,7 +82,7 @@ CHIP_ERROR {{asUpperCamelCase clusterName}}Cluster::{{asUpperCamelCase name}}(Ca
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, {{asUpperCamelCase parent.name}}::Commands::Ids::{{asUpperCamelCase name}},
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, {{asUpperCamelCase parent.name}}::Commands::Ids::{{asUpperCamelCase name}},
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));

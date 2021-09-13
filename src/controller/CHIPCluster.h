@@ -36,7 +36,7 @@ class DLL_EXPORT ClusterBase
 public:
     virtual ~ClusterBase() {}
 
-    CHIP_ERROR Associate(Device * device, EndpointId endpoint);
+    CHIP_ERROR Associate(Device * device, EndpointId endpoint, GroupId group);
 
     void Dissociate();
 
@@ -74,6 +74,7 @@ protected:
     const ClusterId mClusterId;
     Device * mDevice;
     EndpointId mEndpoint;
+    GroupId mGroup;
 };
 
 } // namespace Controller

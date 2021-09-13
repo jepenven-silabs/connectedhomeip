@@ -83,6 +83,7 @@ CHIP_ERROR CommandHandler::ProcessCommandDataElement(CommandDataElement::Parser 
     chip::ClusterId clusterId;
     chip::CommandId commandId;
     chip::EndpointId endpointId;
+    chip::GroupId groupId;
 
     err = aCommandElement.GetCommandPath(&commandPath);
     SuccessOrExit(err);
@@ -91,6 +92,8 @@ CHIP_ERROR CommandHandler::ProcessCommandDataElement(CommandDataElement::Parser 
     err = commandPath.GetCommandId(&commandId);
     SuccessOrExit(err);
     err = commandPath.GetEndpointId(&endpointId);
+    SuccessOrExit(err);
+    err = commandPath.GetGroupId(&GroupId);
     SuccessOrExit(err);
 
     VerifyOrExit(ServerClusterCommandExists(clusterId, commandId, endpointId), err = CHIP_ERROR_INVALID_PROFILE_ID);
@@ -103,6 +106,9 @@ CHIP_ERROR CommandHandler::ProcessCommandDataElement(CommandDataElement::Parser 
     }
     if (CHIP_NO_ERROR == err)
     {
+        // TODO @jepenven-silabs add groupID check before of during dispatch
+        ChipLogDetail(DataManagement, "Group Id received " ChipLogFormatMEI, ChipLogValueMEI(groupId));
+
         DispatchSingleClusterCommand(clusterId, commandId, endpointId, commandDataReader, this);
     }
 
@@ -110,7 +116,7 @@ exit:
     if (err != CHIP_NO_ERROR)
     {
         chip::app::CommandPathParams returnStatusParam = { endpointId,
-                                                           0, // GroupId
+                                                           groupId,
                                                            clusterId, commandId, (chip::app::CommandPathFlags::kEndpointIdValid) };
 
         // The Path is the path in the request if there are any error occurred before we dispatch the command to clusters.

@@ -3716,11 +3716,11 @@ chip::ChipError::StorageType chip_ime_AppendCommand_OnOff_OnWithTimedOff(chip::C
     return cluster.OnWithTimedOff(nullptr, nullptr, onOffControl, onTime, offWaitTime).AsInteger();
 }
 chip::ChipError::StorageType chip_ime_AppendCommand_OnOff_Toggle(chip::Controller::Device * device, chip::EndpointId ZCLendpointId,
-                                                                 chip::GroupId)
+                                                                 chip::GroupId groupId)
 {
     VerifyOrReturnError(device != nullptr, CHIP_ERROR_INVALID_ARGUMENT.AsInteger());
     chip::Controller::OnOffCluster cluster;
-    cluster.Associate(device, ZCLendpointId);
+    cluster.Associate(device, ZCLendpointId, groupId);
     return cluster.Toggle(nullptr, nullptr).AsInteger();
 }
 

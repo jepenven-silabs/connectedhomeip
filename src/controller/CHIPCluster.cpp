@@ -32,13 +32,14 @@
 namespace chip {
 namespace Controller {
 
-CHIP_ERROR ClusterBase::Associate(Device * device, EndpointId endpoint)
+CHIP_ERROR ClusterBase::Associate(Device * device, EndpointId endpoint, GroupId group = 0)
 {
     CHIP_ERROR err = CHIP_NO_ERROR;
     // TODO: Check if the device supports mCluster at the requested endpoint
 
     mDevice   = device;
     mEndpoint = endpoint;
+    mGroup    = group;
 
     return err;
 }
