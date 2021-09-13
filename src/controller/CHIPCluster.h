@@ -36,7 +36,7 @@ class DLL_EXPORT ClusterBase
 public:
     virtual ~ClusterBase() {}
 
-    CHIP_ERROR Associate(Device * device, EndpointId endpoint, GroupId group);
+    CHIP_ERROR Associate(Device * device, EndpointId endpoint, GroupId group = 0);
 
     void Dissociate();
 

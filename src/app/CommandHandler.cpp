@@ -93,7 +93,7 @@ CHIP_ERROR CommandHandler::ProcessCommandDataElement(CommandDataElement::Parser 
     SuccessOrExit(err);
     err = commandPath.GetEndpointId(&endpointId);
     SuccessOrExit(err);
-    err = commandPath.GetGroupId(&GroupId);
+    err = commandPath.GetGroupId(&groupId);
     SuccessOrExit(err);
 
     VerifyOrExit(ServerClusterCommandExists(clusterId, commandId, endpointId), err = CHIP_ERROR_INVALID_PROFILE_ID);
