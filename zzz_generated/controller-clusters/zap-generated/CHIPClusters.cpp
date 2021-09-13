@@ -79,7 +79,6 @@ namespace Controller {
 
 // TODO(#4502): onCompletion is not used by IM for now.
 // TODO(#4503): length should be passed to commands when byte string is in argument list.
-// TODO(#4503): Commands should take group id as an argument.
 
 // AccountLogin Cluster Commands
 CHIP_ERROR AccountLoginCluster::GetSetupPIN(Callback::Cancelable * onSuccessCallback, Callback::Cancelable * onFailureCallback,
@@ -96,7 +95,7 @@ CHIP_ERROR AccountLoginCluster::GetSetupPIN(Callback::Cancelable * onSuccessCall
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, AccountLogin::Commands::Ids::GetSetupPIN,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, AccountLogin::Commands::Ids::GetSetupPIN,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -137,7 +136,7 @@ CHIP_ERROR AccountLoginCluster::Login(Callback::Cancelable * onSuccessCallback, 
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, AccountLogin::Commands::Ids::Login,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, AccountLogin::Commands::Ids::Login,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -203,7 +202,7 @@ CHIP_ERROR AdministratorCommissioningCluster::OpenBasicCommissioningWindow(Callb
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId,
                                          AdministratorCommissioning::Commands::Ids::OpenBasicCommissioningWindow,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
@@ -248,7 +247,7 @@ CHIP_ERROR AdministratorCommissioningCluster::OpenCommissioningWindow(Callback::
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId,
                                          AdministratorCommissioning::Commands::Ids::OpenCommissioningWindow,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
@@ -300,7 +299,7 @@ CHIP_ERROR AdministratorCommissioningCluster::RevokeCommissioning(Callback::Canc
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId,
                                          AdministratorCommissioning::Commands::Ids::RevokeCommissioning,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
@@ -362,7 +361,7 @@ CHIP_ERROR ApplicationBasicCluster::ChangeStatus(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ApplicationBasic::Commands::Ids::ChangeStatus,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ApplicationBasic::Commands::Ids::ChangeStatus,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -509,7 +508,7 @@ CHIP_ERROR ApplicationLauncherCluster::LaunchApp(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ApplicationLauncher::Commands::Ids::LaunchApp,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ApplicationLauncher::Commands::Ids::LaunchApp,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -612,7 +611,7 @@ CHIP_ERROR AudioOutputCluster::RenameOutput(Callback::Cancelable * onSuccessCall
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, AudioOutput::Commands::Ids::RenameOutput,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, AudioOutput::Commands::Ids::RenameOutput,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -655,7 +654,7 @@ CHIP_ERROR AudioOutputCluster::SelectOutput(Callback::Cancelable * onSuccessCall
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, AudioOutput::Commands::Ids::SelectOutput,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, AudioOutput::Commands::Ids::SelectOutput,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -742,8 +741,7 @@ CHIP_ERROR BarrierControlCluster::BarrierControlGoToPercent(Callback::Cancelable
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         BarrierControl::Commands::Ids::BarrierControlGoToPercent,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, BarrierControl::Commands::Ids::BarrierControlGoToPercent,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -784,7 +782,7 @@ CHIP_ERROR BarrierControlCluster::BarrierControlStop(Callback::Cancelable * onSu
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, BarrierControl::Commands::Ids::BarrierControlStop,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, BarrierControl::Commands::Ids::BarrierControlStop,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -892,7 +890,7 @@ CHIP_ERROR BasicCluster::MfgSpecificPing(Callback::Cancelable * onSuccessCallbac
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Basic::Commands::Ids::MfgSpecificPing,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Basic::Commands::Ids::MfgSpecificPing,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -1345,7 +1343,7 @@ CHIP_ERROR BindingCluster::Bind(Callback::Cancelable * onSuccessCallback, Callba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Binding::Commands::Ids::Bind,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Binding::Commands::Ids::Bind,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -1393,7 +1391,7 @@ CHIP_ERROR BindingCluster::Unbind(Callback::Cancelable * onSuccessCallback, Call
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Binding::Commands::Ids::Unbind,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Binding::Commands::Ids::Unbind,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -1669,7 +1667,7 @@ CHIP_ERROR ColorControlCluster::ColorLoopSet(Callback::Cancelable * onSuccessCal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::ColorLoopSet,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::ColorLoopSet,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -1722,7 +1720,7 @@ CHIP_ERROR ColorControlCluster::EnhancedMoveHue(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::EnhancedMoveHue,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::EnhancedMoveHue,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -1770,7 +1768,7 @@ CHIP_ERROR ColorControlCluster::EnhancedMoveToHue(Callback::Cancelable * onSucce
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::EnhancedMoveToHue,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::EnhancedMoveToHue,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -1821,8 +1819,7 @@ CHIP_ERROR ColorControlCluster::EnhancedMoveToHueAndSaturation(Callback::Cancela
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         ColorControl::Commands::Ids::EnhancedMoveToHueAndSaturation,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::EnhancedMoveToHueAndSaturation,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -1872,7 +1869,7 @@ CHIP_ERROR ColorControlCluster::EnhancedStepHue(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::EnhancedStepHue,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::EnhancedStepHue,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -1921,7 +1918,7 @@ CHIP_ERROR ColorControlCluster::MoveColor(Callback::Cancelable * onSuccessCallba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::MoveColor,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::MoveColor,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -1970,7 +1967,7 @@ CHIP_ERROR ColorControlCluster::MoveColorTemperature(Callback::Cancelable * onSu
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::MoveColorTemperature,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::MoveColorTemperature,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2021,7 +2018,7 @@ CHIP_ERROR ColorControlCluster::MoveHue(Callback::Cancelable * onSuccessCallback
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::MoveHue,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::MoveHue,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2068,7 +2065,7 @@ CHIP_ERROR ColorControlCluster::MoveSaturation(Callback::Cancelable * onSuccessC
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::MoveSaturation,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::MoveSaturation,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2116,7 +2113,7 @@ CHIP_ERROR ColorControlCluster::MoveToColor(Callback::Cancelable * onSuccessCall
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::MoveToColor,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::MoveToColor,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2166,8 +2163,7 @@ CHIP_ERROR ColorControlCluster::MoveToColorTemperature(Callback::Cancelable * on
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         ColorControl::Commands::Ids::MoveToColorTemperature,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::MoveToColorTemperature,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2215,7 +2211,7 @@ CHIP_ERROR ColorControlCluster::MoveToHue(Callback::Cancelable * onSuccessCallba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::MoveToHue,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::MoveToHue,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2265,8 +2261,7 @@ CHIP_ERROR ColorControlCluster::MoveToHueAndSaturation(Callback::Cancelable * on
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         ColorControl::Commands::Ids::MoveToHueAndSaturation,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::MoveToHueAndSaturation,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2316,7 +2311,7 @@ CHIP_ERROR ColorControlCluster::MoveToSaturation(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::MoveToSaturation,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::MoveToSaturation,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2364,7 +2359,7 @@ CHIP_ERROR ColorControlCluster::StepColor(Callback::Cancelable * onSuccessCallba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::StepColor,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::StepColor,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2415,7 +2410,7 @@ CHIP_ERROR ColorControlCluster::StepColorTemperature(Callback::Cancelable * onSu
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::StepColorTemperature,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::StepColorTemperature,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2469,7 +2464,7 @@ CHIP_ERROR ColorControlCluster::StepHue(Callback::Cancelable * onSuccessCallback
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::StepHue,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::StepHue,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2519,7 +2514,7 @@ CHIP_ERROR ColorControlCluster::StepSaturation(Callback::Cancelable * onSuccessC
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::StepSaturation,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::StepSaturation,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -2568,7 +2563,7 @@ CHIP_ERROR ColorControlCluster::StopMoveStep(Callback::Cancelable * onSuccessCal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ColorControl::Commands::Ids::StopMoveStep,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ColorControl::Commands::Ids::StopMoveStep,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -3589,7 +3584,7 @@ CHIP_ERROR ContentLauncherCluster::LaunchContent(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ContentLauncher::Commands::Ids::LaunchContent,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ContentLauncher::Commands::Ids::LaunchContent,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -3632,7 +3627,7 @@ CHIP_ERROR ContentLauncherCluster::LaunchURL(Callback::Cancelable * onSuccessCal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, ContentLauncher::Commands::Ids::LaunchURL,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ContentLauncher::Commands::Ids::LaunchURL,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -3791,8 +3786,7 @@ CHIP_ERROR DiagnosticLogsCluster::RetrieveLogsRequest(Callback::Cancelable * onS
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         DiagnosticLogs::Commands::Ids::RetrieveLogsRequest,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DiagnosticLogs::Commands::Ids::RetrieveLogsRequest,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -3846,7 +3840,7 @@ CHIP_ERROR DoorLockCluster::ClearAllPins(Callback::Cancelable * onSuccessCallbac
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::ClearAllPins,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::ClearAllPins,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -3884,7 +3878,7 @@ CHIP_ERROR DoorLockCluster::ClearAllRfids(Callback::Cancelable * onSuccessCallba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::ClearAllRfids,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::ClearAllRfids,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -3923,7 +3917,7 @@ CHIP_ERROR DoorLockCluster::ClearHolidaySchedule(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::ClearHolidaySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::ClearHolidaySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -3964,7 +3958,7 @@ CHIP_ERROR DoorLockCluster::ClearPin(Callback::Cancelable * onSuccessCallback, C
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::ClearPin,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::ClearPin,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4005,7 +3999,7 @@ CHIP_ERROR DoorLockCluster::ClearRfid(Callback::Cancelable * onSuccessCallback, 
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::ClearRfid,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::ClearRfid,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4046,7 +4040,7 @@ CHIP_ERROR DoorLockCluster::ClearWeekdaySchedule(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::ClearWeekdaySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::ClearWeekdaySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4089,7 +4083,7 @@ CHIP_ERROR DoorLockCluster::ClearYeardaySchedule(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::ClearYeardaySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::ClearYeardaySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4132,7 +4126,7 @@ CHIP_ERROR DoorLockCluster::GetHolidaySchedule(Callback::Cancelable * onSuccessC
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::GetHolidaySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::GetHolidaySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4173,7 +4167,7 @@ CHIP_ERROR DoorLockCluster::GetLogRecord(Callback::Cancelable * onSuccessCallbac
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::GetLogRecord,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::GetLogRecord,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4214,7 +4208,7 @@ CHIP_ERROR DoorLockCluster::GetPin(Callback::Cancelable * onSuccessCallback, Cal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::GetPin,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::GetPin,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4255,7 +4249,7 @@ CHIP_ERROR DoorLockCluster::GetRfid(Callback::Cancelable * onSuccessCallback, Ca
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::GetRfid,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::GetRfid,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4296,7 +4290,7 @@ CHIP_ERROR DoorLockCluster::GetUserType(Callback::Cancelable * onSuccessCallback
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::GetUserType,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::GetUserType,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4337,7 +4331,7 @@ CHIP_ERROR DoorLockCluster::GetWeekdaySchedule(Callback::Cancelable * onSuccessC
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::GetWeekdaySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::GetWeekdaySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4380,7 +4374,7 @@ CHIP_ERROR DoorLockCluster::GetYeardaySchedule(Callback::Cancelable * onSuccessC
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::GetYeardaySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::GetYeardaySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4423,7 +4417,7 @@ CHIP_ERROR DoorLockCluster::LockDoor(Callback::Cancelable * onSuccessCallback, C
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::LockDoor,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::LockDoor,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4465,7 +4459,7 @@ CHIP_ERROR DoorLockCluster::SetHolidaySchedule(Callback::Cancelable * onSuccessC
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::SetHolidaySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::SetHolidaySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4512,7 +4506,7 @@ CHIP_ERROR DoorLockCluster::SetPin(Callback::Cancelable * onSuccessCallback, Cal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::SetPin,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::SetPin,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4559,7 +4553,7 @@ CHIP_ERROR DoorLockCluster::SetRfid(Callback::Cancelable * onSuccessCallback, Ca
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::SetRfid,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::SetRfid,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4606,7 +4600,7 @@ CHIP_ERROR DoorLockCluster::SetUserType(Callback::Cancelable * onSuccessCallback
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::SetUserType,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::SetUserType,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4650,7 +4644,7 @@ CHIP_ERROR DoorLockCluster::SetWeekdaySchedule(Callback::Cancelable * onSuccessC
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::SetWeekdaySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::SetWeekdaySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4703,7 +4697,7 @@ CHIP_ERROR DoorLockCluster::SetYeardaySchedule(Callback::Cancelable * onSuccessC
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::SetYeardaySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::SetYeardaySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4750,7 +4744,7 @@ CHIP_ERROR DoorLockCluster::UnlockDoor(Callback::Cancelable * onSuccessCallback,
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::UnlockDoor,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::UnlockDoor,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -4791,7 +4785,7 @@ CHIP_ERROR DoorLockCluster::UnlockWithTimeout(Callback::Cancelable * onSuccessCa
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, DoorLock::Commands::Ids::UnlockWithTimeout,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, DoorLock::Commands::Ids::UnlockWithTimeout,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5066,8 +5060,7 @@ CHIP_ERROR EthernetNetworkDiagnosticsCluster::ResetCounts(Callback::Cancelable *
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         EthernetNetworkDiagnostics::Commands::Ids::ResetCounts,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, EthernetNetworkDiagnostics::Commands::Ids::ResetCounts,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5280,7 +5273,7 @@ CHIP_ERROR GeneralCommissioningCluster::ArmFailSafe(Callback::Cancelable * onSuc
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, GeneralCommissioning::Commands::Ids::ArmFailSafe,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, GeneralCommissioning::Commands::Ids::ArmFailSafe,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5325,8 +5318,7 @@ CHIP_ERROR GeneralCommissioningCluster::CommissioningComplete(Callback::Cancelab
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         GeneralCommissioning::Commands::Ids::CommissioningComplete,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, GeneralCommissioning::Commands::Ids::CommissioningComplete,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5366,8 +5358,7 @@ CHIP_ERROR GeneralCommissioningCluster::SetRegulatoryConfig(Callback::Cancelable
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         GeneralCommissioning::Commands::Ids::SetRegulatoryConfig,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, GeneralCommissioning::Commands::Ids::SetRegulatoryConfig,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5569,7 +5560,7 @@ CHIP_ERROR GroupsCluster::AddGroup(Callback::Cancelable * onSuccessCallback, Cal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Groups::Commands::Ids::AddGroup,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Groups::Commands::Ids::AddGroup,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5612,7 +5603,7 @@ CHIP_ERROR GroupsCluster::AddGroupIfIdentifying(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Groups::Commands::Ids::AddGroupIfIdentifying,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Groups::Commands::Ids::AddGroupIfIdentifying,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5655,7 +5646,7 @@ CHIP_ERROR GroupsCluster::GetGroupMembership(Callback::Cancelable * onSuccessCal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Groups::Commands::Ids::GetGroupMembership,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Groups::Commands::Ids::GetGroupMembership,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5697,7 +5688,7 @@ CHIP_ERROR GroupsCluster::RemoveAllGroups(Callback::Cancelable * onSuccessCallba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Groups::Commands::Ids::RemoveAllGroups,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Groups::Commands::Ids::RemoveAllGroups,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5736,7 +5727,7 @@ CHIP_ERROR GroupsCluster::RemoveGroup(Callback::Cancelable * onSuccessCallback, 
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Groups::Commands::Ids::RemoveGroup,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Groups::Commands::Ids::RemoveGroup,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5777,7 +5768,7 @@ CHIP_ERROR GroupsCluster::ViewGroup(Callback::Cancelable * onSuccessCallback, Ca
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Groups::Commands::Ids::ViewGroup,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Groups::Commands::Ids::ViewGroup,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5851,7 +5842,7 @@ CHIP_ERROR IdentifyCluster::Identify(Callback::Cancelable * onSuccessCallback, C
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Identify::Commands::Ids::Identify,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Identify::Commands::Ids::Identify,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5891,7 +5882,7 @@ CHIP_ERROR IdentifyCluster::IdentifyQuery(Callback::Cancelable * onSuccessCallba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Identify::Commands::Ids::IdentifyQuery,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Identify::Commands::Ids::IdentifyQuery,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -5980,7 +5971,7 @@ CHIP_ERROR KeypadInputCluster::SendKey(Callback::Cancelable * onSuccessCallback,
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, KeypadInput::Commands::Ids::SendKey,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, KeypadInput::Commands::Ids::SendKey,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6043,7 +6034,7 @@ CHIP_ERROR LevelControlCluster::Move(Callback::Cancelable * onSuccessCallback, C
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, LevelControl::Commands::Ids::Move,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, LevelControl::Commands::Ids::Move,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6090,7 +6081,7 @@ CHIP_ERROR LevelControlCluster::MoveToLevel(Callback::Cancelable * onSuccessCall
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, LevelControl::Commands::Ids::MoveToLevel,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, LevelControl::Commands::Ids::MoveToLevel,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6138,7 +6129,7 @@ CHIP_ERROR LevelControlCluster::MoveToLevelWithOnOff(Callback::Cancelable * onSu
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, LevelControl::Commands::Ids::MoveToLevelWithOnOff,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, LevelControl::Commands::Ids::MoveToLevelWithOnOff,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6181,7 +6172,7 @@ CHIP_ERROR LevelControlCluster::MoveWithOnOff(Callback::Cancelable * onSuccessCa
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, LevelControl::Commands::Ids::MoveWithOnOff,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, LevelControl::Commands::Ids::MoveWithOnOff,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6225,7 +6216,7 @@ CHIP_ERROR LevelControlCluster::Step(Callback::Cancelable * onSuccessCallback, C
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, LevelControl::Commands::Ids::Step,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, LevelControl::Commands::Ids::Step,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6274,7 +6265,7 @@ CHIP_ERROR LevelControlCluster::StepWithOnOff(Callback::Cancelable * onSuccessCa
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, LevelControl::Commands::Ids::StepWithOnOff,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, LevelControl::Commands::Ids::StepWithOnOff,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6319,7 +6310,7 @@ CHIP_ERROR LevelControlCluster::Stop(Callback::Cancelable * onSuccessCallback, C
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, LevelControl::Commands::Ids::Stop,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, LevelControl::Commands::Ids::Stop,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6361,7 +6352,7 @@ CHIP_ERROR LevelControlCluster::StopWithOnOff(Callback::Cancelable * onSuccessCa
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, LevelControl::Commands::Ids::StopWithOnOff,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, LevelControl::Commands::Ids::StopWithOnOff,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6455,7 +6446,7 @@ CHIP_ERROR LowPowerCluster::Sleep(Callback::Cancelable * onSuccessCallback, Call
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, LowPower::Commands::Ids::Sleep,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, LowPower::Commands::Ids::Sleep,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6514,7 +6505,7 @@ CHIP_ERROR MediaInputCluster::HideInputStatus(Callback::Cancelable * onSuccessCa
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaInput::Commands::Ids::HideInputStatus,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaInput::Commands::Ids::HideInputStatus,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6553,7 +6544,7 @@ CHIP_ERROR MediaInputCluster::RenameInput(Callback::Cancelable * onSuccessCallba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaInput::Commands::Ids::RenameInput,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaInput::Commands::Ids::RenameInput,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6596,7 +6587,7 @@ CHIP_ERROR MediaInputCluster::SelectInput(Callback::Cancelable * onSuccessCallba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaInput::Commands::Ids::SelectInput,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaInput::Commands::Ids::SelectInput,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6636,7 +6627,7 @@ CHIP_ERROR MediaInputCluster::ShowInputStatus(Callback::Cancelable * onSuccessCa
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaInput::Commands::Ids::ShowInputStatus,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaInput::Commands::Ids::ShowInputStatus,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6720,7 +6711,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaFastForward(Callback::Cancelable * onSucce
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaFastForward,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaFastForward,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6758,7 +6749,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaNext(Callback::Cancelable * onSuccessCallb
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaNext,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaNext,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6796,7 +6787,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaPause(Callback::Cancelable * onSuccessCall
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaPause,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaPause,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6834,7 +6825,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaPlay(Callback::Cancelable * onSuccessCallb
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaPlay,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaPlay,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6872,7 +6863,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaPrevious(Callback::Cancelable * onSuccessC
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaPrevious,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaPrevious,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6910,7 +6901,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaRewind(Callback::Cancelable * onSuccessCal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaRewind,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaRewind,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6949,7 +6940,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaSeek(Callback::Cancelable * onSuccessCallb
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaSeek,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaSeek,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -6990,7 +6981,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaSkipBackward(Callback::Cancelable * onSucc
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaSkipBackward,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaSkipBackward,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7031,7 +7022,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaSkipForward(Callback::Cancelable * onSucce
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaSkipForward,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaSkipForward,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7071,7 +7062,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaStartOver(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaStartOver,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaStartOver,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7109,7 +7100,7 @@ CHIP_ERROR MediaPlaybackCluster::MediaStop(Callback::Cancelable * onSuccessCallb
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, MediaPlayback::Commands::Ids::MediaStop,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, MediaPlayback::Commands::Ids::MediaStop,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7171,8 +7162,7 @@ CHIP_ERROR NetworkCommissioningCluster::AddThreadNetwork(Callback::Cancelable * 
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         NetworkCommissioning::Commands::Ids::AddThreadNetwork,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, NetworkCommissioning::Commands::Ids::AddThreadNetwork,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7218,8 +7208,7 @@ CHIP_ERROR NetworkCommissioningCluster::AddWiFiNetwork(Callback::Cancelable * on
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         NetworkCommissioning::Commands::Ids::AddWiFiNetwork,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, NetworkCommissioning::Commands::Ids::AddWiFiNetwork,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7267,8 +7256,7 @@ CHIP_ERROR NetworkCommissioningCluster::DisableNetwork(Callback::Cancelable * on
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         NetworkCommissioning::Commands::Ids::DisableNetwork,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, NetworkCommissioning::Commands::Ids::DisableNetwork,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7314,8 +7302,7 @@ CHIP_ERROR NetworkCommissioningCluster::EnableNetwork(Callback::Cancelable * onS
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         NetworkCommissioning::Commands::Ids::EnableNetwork,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, NetworkCommissioning::Commands::Ids::EnableNetwork,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7361,7 +7348,7 @@ CHIP_ERROR NetworkCommissioningCluster::GetLastNetworkCommissioningResult(Callba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId,
                                          NetworkCommissioning::Commands::Ids::GetLastNetworkCommissioningResult,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
@@ -7404,8 +7391,7 @@ CHIP_ERROR NetworkCommissioningCluster::RemoveNetwork(Callback::Cancelable * onS
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         NetworkCommissioning::Commands::Ids::RemoveNetwork,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, NetworkCommissioning::Commands::Ids::RemoveNetwork,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7451,7 +7437,7 @@ CHIP_ERROR NetworkCommissioningCluster::ScanNetworks(Callback::Cancelable * onSu
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, NetworkCommissioning::Commands::Ids::ScanNetworks,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, NetworkCommissioning::Commands::Ids::ScanNetworks,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7498,8 +7484,7 @@ CHIP_ERROR NetworkCommissioningCluster::UpdateThreadNetwork(Callback::Cancelable
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         NetworkCommissioning::Commands::Ids::UpdateThreadNetwork,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, NetworkCommissioning::Commands::Ids::UpdateThreadNetwork,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7545,8 +7530,7 @@ CHIP_ERROR NetworkCommissioningCluster::UpdateWiFiNetwork(Callback::Cancelable *
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         NetworkCommissioning::Commands::Ids::UpdateWiFiNetwork,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, NetworkCommissioning::Commands::Ids::UpdateWiFiNetwork,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7628,7 +7612,7 @@ CHIP_ERROR OtaSoftwareUpdateProviderCluster::ApplyUpdateRequest(Callback::Cancel
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId,
                                          OtaSoftwareUpdateProvider::Commands::Ids::ApplyUpdateRequest,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
@@ -7673,7 +7657,7 @@ CHIP_ERROR OtaSoftwareUpdateProviderCluster::NotifyUpdateApplied(Callback::Cance
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId,
                                          OtaSoftwareUpdateProvider::Commands::Ids::NotifyUpdateApplied,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
@@ -7721,8 +7705,7 @@ CHIP_ERROR OtaSoftwareUpdateProviderCluster::QueryImage(Callback::Cancelable * o
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         OtaSoftwareUpdateProvider::Commands::Ids::QueryImage,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OtaSoftwareUpdateProvider::Commands::Ids::QueryImage,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7879,7 +7862,7 @@ CHIP_ERROR OnOffCluster::Off(Callback::Cancelable * onSuccessCallback, Callback:
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, OnOff::Commands::Ids::Off,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OnOff::Commands::Ids::Off,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7918,7 +7901,7 @@ CHIP_ERROR OnOffCluster::OffWithEffect(Callback::Cancelable * onSuccessCallback,
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, OnOff::Commands::Ids::OffWithEffect,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OnOff::Commands::Ids::OffWithEffect,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7960,7 +7943,7 @@ CHIP_ERROR OnOffCluster::On(Callback::Cancelable * onSuccessCallback, Callback::
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, OnOff::Commands::Ids::On,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OnOff::Commands::Ids::On,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -7998,7 +7981,7 @@ CHIP_ERROR OnOffCluster::OnWithRecallGlobalScene(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, OnOff::Commands::Ids::OnWithRecallGlobalScene,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OnOff::Commands::Ids::OnWithRecallGlobalScene,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -8037,7 +8020,7 @@ CHIP_ERROR OnOffCluster::OnWithTimedOff(Callback::Cancelable * onSuccessCallback
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, OnOff::Commands::Ids::OnWithTimedOff,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OnOff::Commands::Ids::OnWithTimedOff,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -8081,7 +8064,7 @@ CHIP_ERROR OnOffCluster::Toggle(Callback::Cancelable * onSuccessCallback, Callba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, OnOff::Commands::Ids::Toggle,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OnOff::Commands::Ids::Toggle,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -8345,7 +8328,7 @@ CHIP_ERROR OperationalCredentialsCluster::AddNOC(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, OperationalCredentials::Commands::Ids::AddNOC,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OperationalCredentials::Commands::Ids::AddNOC,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -8393,7 +8376,7 @@ CHIP_ERROR OperationalCredentialsCluster::AddTrustedRootCertificate(Callback::Ca
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId,
                                          OperationalCredentials::Commands::Ids::AddTrustedRootCertificate,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
@@ -8435,8 +8418,7 @@ CHIP_ERROR OperationalCredentialsCluster::OpCSRRequest(Callback::Cancelable * on
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         OperationalCredentials::Commands::Ids::OpCSRRequest,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OperationalCredentials::Commands::Ids::OpCSRRequest,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -8477,8 +8459,7 @@ CHIP_ERROR OperationalCredentialsCluster::RemoveFabric(Callback::Cancelable * on
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         OperationalCredentials::Commands::Ids::RemoveFabric,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OperationalCredentials::Commands::Ids::RemoveFabric,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -8520,7 +8501,7 @@ CHIP_ERROR OperationalCredentialsCluster::RemoveTrustedRootCertificate(Callback:
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId,
                                          OperationalCredentials::Commands::Ids::RemoveTrustedRootCertificate,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
@@ -8562,8 +8543,7 @@ CHIP_ERROR OperationalCredentialsCluster::UpdateFabricLabel(Callback::Cancelable
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         OperationalCredentials::Commands::Ids::UpdateFabricLabel,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OperationalCredentials::Commands::Ids::UpdateFabricLabel,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -8604,7 +8584,7 @@ CHIP_ERROR OperationalCredentialsCluster::UpdateNOC(Callback::Cancelable * onSuc
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, OperationalCredentials::Commands::Ids::UpdateNOC,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, OperationalCredentials::Commands::Ids::UpdateNOC,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9011,7 +8991,7 @@ CHIP_ERROR ScenesCluster::AddScene(Callback::Cancelable * onSuccessCallback, Cal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Scenes::Commands::Ids::AddScene,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Scenes::Commands::Ids::AddScene,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9064,7 +9044,7 @@ CHIP_ERROR ScenesCluster::GetSceneMembership(Callback::Cancelable * onSuccessCal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Scenes::Commands::Ids::GetSceneMembership,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Scenes::Commands::Ids::GetSceneMembership,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9105,7 +9085,7 @@ CHIP_ERROR ScenesCluster::RecallScene(Callback::Cancelable * onSuccessCallback, 
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Scenes::Commands::Ids::RecallScene,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Scenes::Commands::Ids::RecallScene,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9150,7 +9130,7 @@ CHIP_ERROR ScenesCluster::RemoveAllScenes(Callback::Cancelable * onSuccessCallba
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Scenes::Commands::Ids::RemoveAllScenes,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Scenes::Commands::Ids::RemoveAllScenes,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9191,7 +9171,7 @@ CHIP_ERROR ScenesCluster::RemoveScene(Callback::Cancelable * onSuccessCallback, 
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Scenes::Commands::Ids::RemoveScene,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Scenes::Commands::Ids::RemoveScene,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9234,7 +9214,7 @@ CHIP_ERROR ScenesCluster::StoreScene(Callback::Cancelable * onSuccessCallback, C
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Scenes::Commands::Ids::StoreScene,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Scenes::Commands::Ids::StoreScene,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9277,7 +9257,7 @@ CHIP_ERROR ScenesCluster::ViewScene(Callback::Cancelable * onSuccessCallback, Ca
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Scenes::Commands::Ids::ViewScene,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Scenes::Commands::Ids::ViewScene,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9401,8 +9381,7 @@ CHIP_ERROR SoftwareDiagnosticsCluster::ResetWatermarks(Callback::Cancelable * on
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         SoftwareDiagnostics::Commands::Ids::ResetWatermarks,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, SoftwareDiagnostics::Commands::Ids::ResetWatermarks,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9542,7 +9521,7 @@ CHIP_ERROR TvChannelCluster::ChangeChannel(Callback::Cancelable * onSuccessCallb
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, TvChannel::Commands::Ids::ChangeChannel,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, TvChannel::Commands::Ids::ChangeChannel,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9584,7 +9563,7 @@ CHIP_ERROR TvChannelCluster::ChangeChannelByNumber(Callback::Cancelable * onSucc
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, TvChannel::Commands::Ids::ChangeChannelByNumber,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, TvChannel::Commands::Ids::ChangeChannelByNumber,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9627,7 +9606,7 @@ CHIP_ERROR TvChannelCluster::SkipChannel(Callback::Cancelable * onSuccessCallbac
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, TvChannel::Commands::Ids::SkipChannel,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, TvChannel::Commands::Ids::SkipChannel,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9725,7 +9704,7 @@ CHIP_ERROR TargetNavigatorCluster::NavigateTarget(Callback::Cancelable * onSucce
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, TargetNavigator::Commands::Ids::NavigateTarget,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, TargetNavigator::Commands::Ids::NavigateTarget,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9882,7 +9861,7 @@ CHIP_ERROR TestClusterCluster::Test(Callback::Cancelable * onSuccessCallback, Ca
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, TestCluster::Commands::Ids::Test,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, TestCluster::Commands::Ids::Test,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9921,7 +9900,7 @@ CHIP_ERROR TestClusterCluster::TestAddArguments(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, TestCluster::Commands::Ids::TestAddArguments,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, TestCluster::Commands::Ids::TestAddArguments,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -9963,7 +9942,7 @@ CHIP_ERROR TestClusterCluster::TestNotHandled(Callback::Cancelable * onSuccessCa
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, TestCluster::Commands::Ids::TestNotHandled,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, TestCluster::Commands::Ids::TestNotHandled,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -10001,7 +9980,7 @@ CHIP_ERROR TestClusterCluster::TestSpecific(Callback::Cancelable * onSuccessCall
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, TestCluster::Commands::Ids::TestSpecific,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, TestCluster::Commands::Ids::TestSpecific,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -10040,7 +10019,7 @@ CHIP_ERROR TestClusterCluster::TestUnknownCommand(Callback::Cancelable * onSucce
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, TestCluster::Commands::Ids::TestUnknownCommand,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, TestCluster::Commands::Ids::TestUnknownCommand,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -10717,7 +10696,7 @@ CHIP_ERROR ThermostatCluster::ClearWeeklySchedule(Callback::Cancelable * onSucce
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Thermostat::Commands::Ids::ClearWeeklySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Thermostat::Commands::Ids::ClearWeeklySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -10755,7 +10734,7 @@ CHIP_ERROR ThermostatCluster::GetRelayStatusLog(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Thermostat::Commands::Ids::GetRelayStatusLog,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Thermostat::Commands::Ids::GetRelayStatusLog,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -10794,7 +10773,7 @@ CHIP_ERROR ThermostatCluster::GetWeeklySchedule(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Thermostat::Commands::Ids::GetWeeklySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Thermostat::Commands::Ids::GetWeeklySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -10838,7 +10817,7 @@ CHIP_ERROR ThermostatCluster::SetWeeklySchedule(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Thermostat::Commands::Ids::SetWeeklySchedule,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Thermostat::Commands::Ids::SetWeeklySchedule,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -10885,7 +10864,7 @@ CHIP_ERROR ThermostatCluster::SetpointRaiseLower(Callback::Cancelable * onSucces
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, Thermostat::Commands::Ids::SetpointRaiseLower,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, Thermostat::Commands::Ids::SetpointRaiseLower,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -11423,8 +11402,7 @@ CHIP_ERROR ThreadNetworkDiagnosticsCluster::ResetCounts(Callback::Cancelable * o
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         ThreadNetworkDiagnostics::Commands::Ids::ResetCounts,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, ThreadNetworkDiagnostics::Commands::Ids::ResetCounts,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -12238,8 +12216,7 @@ CHIP_ERROR WiFiNetworkDiagnosticsCluster::ResetCounts(Callback::Cancelable * onS
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId,
-                                         WiFiNetworkDiagnostics::Commands::Ids::ResetCounts,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, WiFiNetworkDiagnostics::Commands::Ids::ResetCounts,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -12359,7 +12336,7 @@ CHIP_ERROR WindowCoveringCluster::DownOrClose(Callback::Cancelable * onSuccessCa
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, WindowCovering::Commands::Ids::DownOrClose,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, WindowCovering::Commands::Ids::DownOrClose,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -12399,7 +12376,7 @@ CHIP_ERROR WindowCoveringCluster::GoToLiftPercentage(Callback::Cancelable * onSu
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, WindowCovering::Commands::Ids::GoToLiftPercentage,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, WindowCovering::Commands::Ids::GoToLiftPercentage,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -12442,7 +12419,7 @@ CHIP_ERROR WindowCoveringCluster::GoToLiftValue(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, WindowCovering::Commands::Ids::GoToLiftValue,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, WindowCovering::Commands::Ids::GoToLiftValue,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -12484,7 +12461,7 @@ CHIP_ERROR WindowCoveringCluster::GoToTiltPercentage(Callback::Cancelable * onSu
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, WindowCovering::Commands::Ids::GoToTiltPercentage,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, WindowCovering::Commands::Ids::GoToTiltPercentage,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -12527,7 +12504,7 @@ CHIP_ERROR WindowCoveringCluster::GoToTiltValue(Callback::Cancelable * onSuccess
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, WindowCovering::Commands::Ids::GoToTiltValue,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, WindowCovering::Commands::Ids::GoToTiltValue,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -12567,7 +12544,7 @@ CHIP_ERROR WindowCoveringCluster::StopMotion(Callback::Cancelable * onSuccessCal
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, WindowCovering::Commands::Ids::StopMotion,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, WindowCovering::Commands::Ids::StopMotion,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
@@ -12605,7 +12582,7 @@ CHIP_ERROR WindowCoveringCluster::UpOrOpen(Callback::Cancelable * onSuccessCallb
 
     VerifyOrReturnError(mDevice != nullptr, CHIP_ERROR_INCORRECT_STATE);
 
-    app::CommandPathParams cmdParams = { mEndpoint, /* group id */ 0, mClusterId, WindowCovering::Commands::Ids::UpOrOpen,
+    app::CommandPathParams cmdParams = { mEndpoint, mGroup, mClusterId, WindowCovering::Commands::Ids::UpOrOpen,
                                          (app::CommandPathFlags::kEndpointIdValid) };
 
     SuccessOrExit(err = app::InteractionModelEngine::GetInstance()->NewCommandSender(&sender));
