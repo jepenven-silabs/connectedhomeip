@@ -148,12 +148,12 @@ CHIP_ERROR PacketHeader::Decode(const uint8_t * const data, uint16_t size, uint1
 
     mMsgFlags.SetRaw(msgFlags);
 
+    err = reader.Read16(&mSessionId).StatusCode();
+    SuccessOrExit(err);
+
     err = reader.Read8(&securityFlags).StatusCode();
     SuccessOrExit(err);
     mSecFlags.SetRaw(securityFlags);
-
-    err = reader.Read16(&mSessionId).StatusCode();
-    SuccessOrExit(err);
 
     err = reader.Read32(&mMessageCounter).StatusCode();
     SuccessOrExit(err);
@@ -279,22 +279,12 @@ CHIP_ERROR PacketHeader::Encode(uint8_t * data, uint16_t size, uint16_t * encode
     VerifyOrReturnError(size >= EncodeSizeBytes(), CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(!(mDestinationNodeId.HasValue() && mDestinationGroupId.HasValue()), CHIP_ERROR_INTERNAL);
 
-    Header::MsgFlags messageFlags = mMsgFlags;
-    messageFlags.Set(Header::MsgFlagValues::kSourceNodeIdPresent, mSourceNodeId.HasValue())
-        .Set(Header::MsgFlagValues::kDestinationNodeIdPresent, mDestinationNodeId.HasValue())
-        .Set(Header::MsgFlagValues::kDestinationGroupIdPresent, mDestinationGroupId.HasValue());
-
-    Header::SecFlags securityFlags = mSecFlags;
-    securityFlags.Set(Header::SecFlagValues::kSessiontTypeGroup, mDestinationGroupId.HasValue());
-
-    uint8_t msgFlags = (kMsgHeaderVersion << kVersionShift) | (messageFlags.Raw() & kMsgFlagsMask);
-    uint8_t secFlags = securityFlags.Raw();
-
     uint8_t * p = data;
-    Write8(p, msgFlags);
-    Write8(p, secFlags);
+    Write8(p, GetMessageFlags());
     LittleEndian::Write16(p, mSessionId);
+    Write8(p, GetSecurityFlags());
     LittleEndian::Write32(p, mMessageCounter);
+
     if (mSourceNodeId.HasValue())
     {
         LittleEndian::Write64(p, mSourceNodeId.Value());

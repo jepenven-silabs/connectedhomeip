@@ -46,6 +46,8 @@ static constexpr size_t kMaxAppMessageLen = 1200;
 
 static constexpr uint16_t kMsgSessionIdUnsecured = 0x0000;
 
+static constexpr uint8_t kMsgSessionTypeMask = 0x03;
+
 typedef int PacketHeaderFlags;
 
 namespace Header {
@@ -54,6 +56,7 @@ enum class SessionType
 {
     kUnicastSession = 0,
     kGroupSession   = 1,
+    
 };
 
 /**
@@ -151,8 +154,6 @@ public:
 
     uint16_t GetSessionId() const { return mSessionId; }
 
-    bool HasSessionId() const { return mSessionId != kMsgSessionIdUnsecured; }
-
     bool IsEncrypted() const { return mSessionId != kMsgSessionIdUnsecured; }
 
     uint16_t MICTagLength() const { return (IsEncrypted()) ? chip::Crypto::CHIP_CRYPTO_AEAD_MIC_LENGTH_BYTES : 0; }
@@ -229,9 +230,23 @@ public:
         return *this;
     }
 
+    uint8_t GetMessageFlags() const { return mMsgFlags.Raw(); }
+
+    uint8_t GetSecurityFlags() const { return mSecFlags.Raw(); }
+
+    void SetMessageFlags(uint8_t flags) { mMsgFlags.SetRaw(flags); }
+
+    void SetSecurityFlags(uint8_t flags) { mSecFlags.SetRaw(flags); }
+
+    uint8_t GetSessionType() { return uint8_t(GetSecurityFlags()) | kMsgSessionTypeMask; }
+
     PacketHeader & SetSessionType(Header::SessionType type)
     {
-        mSessionType = type;
+        uint8_t secFlags = GetSecurityFlags();
+        secFlags &= uint8_t(~kMsgSessionTypeMask);
+        secFlags |= uint8_t(type) & kMsgSessionTypeMask;
+        SetSecurityFlags(secFlags);
+
         return *this;
     }
 
@@ -343,8 +358,6 @@ private:
 
     /// Session ID
     uint16_t mSessionId = kMsgSessionIdUnsecured;
-
-    Header::SessionType mSessionType = Header::SessionType::kUnicastSession;
 
     /// Flags read from the message.
     Header::MsgFlags mMsgFlags;
