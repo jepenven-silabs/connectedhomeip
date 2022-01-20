@@ -82,7 +82,7 @@ volatile int apperror_cnt;
 //=================================================================================
 void appError(int err)
 {
-    EFR32_LOG("!!!!!!!!!!!! App Critical Error: %d !!!!!!!!!!!", err);
+    EFR32_LOG("!!!!!!!!!!!! App Critical Error: %x !!!!!!!!!!!", err);
     portDISABLE_INTERRUPTS();
     while (1)
         ;
@@ -109,6 +109,7 @@ extern "C" void vApplicationIdleHook(void)
 // ================================================================================
 int main(void)
 {
+    CHIP_ERROR ret;
     init_efrPlatform();
     mbedtls_platform_set_calloc_free(CHIPPlatformMemoryCalloc, CHIPPlatformMemoryFree);
 
@@ -126,10 +127,15 @@ int main(void)
 
     EFR32_LOG("Init CHIP Stack");
     // Init Chip memory management before the stack
-    chip::Platform::MemoryInit();
+    ret = chip::Platform::MemoryInit();
+    if (ret != CHIP_NO_ERROR)
+    {
+        EFR32_LOG("chip::Platform::MemoryInit() failed");
+        appError(ret);
+    }
     chip::DeviceLayer::PersistedStorage::KeyValueStoreMgrImpl().Init();
 
-    CHIP_ERROR ret = PlatformMgr().InitChipStack();
+    ret = PlatformMgr().InitChipStack();
     if (ret != CHIP_NO_ERROR)
     {
         EFR32_LOG("PlatformMgr().InitChipStack() failed");
