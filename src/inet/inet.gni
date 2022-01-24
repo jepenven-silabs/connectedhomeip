@@ -29,6 +29,8 @@ declare_args() {
   # Inet implementation type.
   if (chip_system_config_use_lwip) {
     chip_system_config_inet = "LwIP"
+  }else if (chip_system_config_use_open_thread_udp) {
+    chip_system_config_inet = "OpenThread"
   } else {
     chip_system_config_inet = "Sockets"
   }

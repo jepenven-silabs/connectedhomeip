@@ -51,6 +51,10 @@
 #include <lwip/inet.h>
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
 
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+#include <openthread/ip6.h>
+#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+
 #if CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
 #include <net/if.h>
 #include <netinet/in.h>
@@ -62,6 +66,12 @@
 
 #define NL_INET_IPV6_ADDR_LEN_IN_BYTES (16)
 #define NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES (14)
+
+#ifndef INET6_ADDRSTRLEN
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+#define INET6_ADDRSTRLEN OT_IP6_ADDRESS_STRING_SIZE
+#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+#endif // INET6_ADDRSTRLEN
 
 namespace chip {
 namespace Inet {
@@ -124,6 +134,9 @@ public:
 #if CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
     static constexpr uint16_t kMaxStringLength = INET6_ADDRSTRLEN;
 #endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+    static constexpr uint16_t kMaxStringLength = OT_IP6_ADDRESS_STRING_SIZE;
+#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
 
 public:
     IPAddress()                        = default;
@@ -143,6 +156,10 @@ public:
     explicit IPAddress(const struct in_addr & ipv4Addr);
 #endif // INET_CONFIG_ENABLE_IPV4
 #endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
+
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+    explicit IPAddress(const otIp6Address & ipv6Addr);
+#endif //CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
 
     /**
      * @brief   Opaque word array to contain IP addresses (independent of protocol version)
@@ -511,6 +528,10 @@ public:
 #endif // INET_CONFIG_ENABLE_IPV4
 
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
+
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+    struct otIp6Address ToIPV6(void) const;
+#endif  // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
 
 #if CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
 

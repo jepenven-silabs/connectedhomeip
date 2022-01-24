@@ -269,6 +269,22 @@ CHIP_ERROR IPAddress::GetIPAddressFromSockAddr(const SockAddr & sockaddr, IPAddr
 
 #endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
 
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+
+IPAddress::IPAddress(const otIp6Address & ipv6Addr)
+{
+    memcpy(Addr, otAddr.mFields.m32, sizeof(Addr));
+}
+
+ip6_addr_t IPAddress::ToIPv6() const
+{
+    otIp6Address otAddr;
+    memcpy(otAddr.mFields.m32, addr.Addr, sizeof(otAddr.mFields.m32));
+    return otAddr;
+}
+
+#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+
 // Is address an IPv4 address encoded in IPv6 format?
 bool IPAddress::IsIPv4() const
 {

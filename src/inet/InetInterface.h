@@ -91,6 +91,11 @@ public:
     static constexpr size_t kMaxIfNameLength = Z_DEVICE_MAX_NAME_LEN;
 #endif
 
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+    using PlatformType                       = unsigned int;
+    static constexpr size_t kMaxIfNameLength = 13;
+#endif
+
 public:
     ~InterfaceId() = default;
 
@@ -192,6 +197,10 @@ private:
 #endif // CHIP_SYSTEM_CONFIG_USE_BSD_IFADDRS
 
 #if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_NET_IF
+    static constexpr PlatformType kPlatformNull = 0;
+#endif
+
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
     static constexpr PlatformType kPlatformNull = 0;
 #endif
     PlatformType mPlatformInterface;
