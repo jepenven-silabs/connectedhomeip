@@ -30,6 +30,7 @@ chip_mdns = "platform"
 
 lwip_platform = "efr32"
 chip_with_lwip = false
+chip_with_open_thread = true
 
 chip_inet_config_enable_ipv4 = false
 

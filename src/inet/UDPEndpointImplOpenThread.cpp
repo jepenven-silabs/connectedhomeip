@@ -17,7 +17,7 @@
  *    limitations under the License.
  */
 
-#include <inet/UDPEndPointImpl_OpenThread.h>
+#include <inet/UDPEndPointImplOpenThread.h>
 
 #include <lib/support/CodeUtils.h>
 #include <lib/support/SafeInt.h>
@@ -82,7 +82,7 @@ void UDPEndPointImplOT::handleUdpReceive(void * aContext, otMessage * aMessage, 
     payload->SetDataLength(msgLen + sizeof(IPPacketInfo));
 
     ep->Retain();
-    CHIP_ERROR err = ep->GetSystemLayer().ScheduleLambda([ep, p = System::LwIPPacketBufferView::UnsafeGetLwIPpbuf(payload)] {
+    CHIP_ERROR err = ep->GetSystemLayer().ScheduleLambda([ep, p = payload.GetRaw()] {
         ep->HandleDataReceived(System::PacketBufferHandle::Adopt(p));
         ep->Release();
     });

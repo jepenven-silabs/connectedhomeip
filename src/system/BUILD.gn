@@ -118,6 +118,9 @@ source_set("system_config_header") {
       public_deps += [ "${chip_root}/src/lwip" ]
     }
   }
+# TODO need to import platform SDK within Inet even if not LwIP platform (CHIPProjectConfig not found otherwise)
+  import("//build_overrides/efr32_sdk.gni")
+  public_deps += [ "${efr32_sdk_build_root}:efr32_sdk" ]
 }
 
 static_library("system") {

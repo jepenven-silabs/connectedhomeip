@@ -314,6 +314,30 @@ CHIP_ERROR InterfaceId::GetLinkLocalAddr(IPAddress * llAddr)
 
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
 
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+CHIP_ERROR InterfaceId::GetInterfaceName(char * nameBuf, size_t nameBufSize) const
+{
+    // TODO JF
+    nameBuf[0] = 0;
+    return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR InterfaceIterator::GetInterfaceName(char * nameBuf, size_t nameBufSize)
+{
+    // TODO JF
+    nameBuf[0] = 0;
+    return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR InterfaceAddressIterator::GetInterfaceName(char * nameBuf, size_t nameBufSize)
+{
+    // TODO JF
+    nameBuf[0] = 0;
+    return CHIP_NO_ERROR;
+}
+
+#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+
 #if CHIP_SYSTEM_CONFIG_USE_SOCKETS && CHIP_SYSTEM_CONFIG_USE_BSD_IFADDRS
 
 CHIP_ERROR InterfaceId::GetInterfaceName(char * nameBuf, size_t nameBufSize) const

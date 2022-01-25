@@ -27,7 +27,9 @@
 #include <platform/EFR32/DiagnosticDataProviderImpl.h>
 #include <platform/OpenThread/GenericThreadStackManagerImpl_OpenThread.h>
 
+#if CHIP_SYSTEM_CONFIG_USE_LWIP
 #include <lwip/tcpip.h>
+#endif
 
 #include "AppConfig.h"
 #include "FreeRTOS.h"

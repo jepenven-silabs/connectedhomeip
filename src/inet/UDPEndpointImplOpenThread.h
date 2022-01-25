@@ -20,6 +20,7 @@
 #pragma once
 
 #include <inet/UDPEndPoint.h>
+#include <inet/EndPointStateOpenThread.h>
 
 #include <openthread/error.h>
 #include <openthread/icmp6.h>

@@ -202,7 +202,7 @@ private:
 
 #if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
     static constexpr PlatformType kPlatformNull = 0;
-#endif
+#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
     PlatformType mPlatformInterface;
 };
 

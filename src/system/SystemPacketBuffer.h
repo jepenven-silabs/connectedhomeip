@@ -689,6 +689,10 @@ public:
 #endif
     }
 
+    #if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+    PacketBuffer * GetRaw() const { return Get(); }
+    #endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+
 protected:
 #if CHIP_SYSTEM_CONFIG_USE_LWIP
     // For use via LwIPPacketBufferView only.

@@ -53,8 +53,8 @@ buildconfig_header("inet_buildconfig") {
     defines +=
         [ "INET_PLATFORM_CONFIG_INCLUDE=${chip_inet_platform_config_include}" ]
   }
-
-  defines += [ "INET_TCP_END_POINT_IMPL_CONFIG_FILE=<inet/TCPEndPointImpl${chip_system_config_inet}.h>" ]
+  # TODO This define should be linked with the enable TCP flag
+  #defines += [ "INET_TCP_END_POINT_IMPL_CONFIG_FILE=<inet/TCPEndPointImpl${chip_system_config_inet}.h>" ]
   defines += [ "INET_UDP_END_POINT_IMPL_CONFIG_FILE=<inet/UDPEndPointImpl${chip_system_config_inet}.h>" ]
 }
 
@@ -107,6 +107,13 @@ static_library("inet") {
     public_deps += [ "${chip_root}/src/lwip" ]
   }
 
+  # TODO need to import platform SDK within Inet even if not LwIP platform (CHIPProjectConfig not found otherwise)
+  import("//build_overrides/efr32_sdk.gni")
+  public_deps += [ "${efr32_sdk_build_root}:efr32_sdk" ]
+
+
+
+
   if (chip_system_config_use_open_thread_udp) {
     if (chip_openthread_ftd) {
       public_deps +=
@@ -116,16 +123,16 @@ static_library("inet") {
           [ "${chip_root}/third_party/openthread/repo:libopenthread-mtd" ]
     }
   }
-
-  if (chip_inet_config_enable_tcp_endpoint) {
-    sources += [
-      "TCPEndPoint.cpp",
-      "TCPEndPoint.h",
-      "TCPEndPointImpl${chip_system_config_inet}.cpp",
-      "TCPEndPointImpl${chip_system_config_inet}.h",
-      "TCPEndPointImpl.h",
-    ]
-  }
+#TODO FIXME Seems to not take into account settings in src/platform/xx/args.gni
+  # if (chip_inet_config_enable_tcp_endpoint) {
+  #   sources += [
+  #     "TCPEndPoint.cpp",
+  #     "TCPEndPoint.h",
+  #     "TCPEndPointImpl${chip_system_config_inet}.cpp",
+  #     "TCPEndPointImpl${chip_system_config_inet}.h",
+  #     "TCPEndPointImpl.h",
+  #   ]
+  # }
 
   if (chip_inet_config_enable_udp_endpoint) {
     sources += [

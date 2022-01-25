@@ -44,6 +44,10 @@
 
 namespace chip {
 namespace Inet {
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+#define ntohl(x) x
+#define htonl(x) x
+#endif
 
 IPAddress IPAddress::Any;
 
@@ -270,20 +274,49 @@ CHIP_ERROR IPAddress::GetIPAddressFromSockAddr(const SockAddr & sockaddr, IPAddr
 #endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
 
 #if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
-
 IPAddress::IPAddress(const otIp6Address & ipv6Addr)
 {
-    memcpy(Addr, otAddr.mFields.m32, sizeof(Addr));
+    memcpy(Addr, ipv6Addr.mFields.m32, sizeof(Addr));
 }
 
-ip6_addr_t IPAddress::ToIPv6() const
+struct otIp6Address IPAddress::ToIPv6() const
 {
     otIp6Address otAddr;
-    memcpy(otAddr.mFields.m32, addr.Addr, sizeof(otAddr.mFields.m32));
+    memcpy(otAddr.mFields.m32, Addr, sizeof(otAddr.mFields.m32));
     return otAddr;
 }
 
-#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
+// No IPV4 support with OpenThread
+
+bool IPAddress::IsIPv4() const
+{
+    return false;
+}
+
+// Is address a IPv4 multicast address?
+bool IPAddress::IsIPv4Multicast() const
+{
+    return false;
+}
+
+// Is address the IPv4 broadcast address?
+bool IPAddress::IsIPv4Broadcast() const
+{
+    return false;
+}
+
+// Is address an IPv4 or IPv6 multicast address?
+bool IPAddress::IsMulticast() const
+{
+    return IsIPv6Multicast();
+}
+
+bool IPAddress::IsIPv6() const
+{
+    return true;
+}
+
+#else
 
 // Is address an IPv4 address encoded in IPv6 format?
 bool IPAddress::IsIPv4() const
@@ -313,6 +346,8 @@ bool IPAddress::IsIPv6() const
 {
     return *this != Any && !IsIPv4();
 }
+
+#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_UDP
 
 // Is address an IPv6 multicast address?
 bool IPAddress::IsIPv6Multicast() const
