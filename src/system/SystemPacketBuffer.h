@@ -651,6 +651,8 @@ public:
 #endif
     }
 
+PacketBuffer * Get() const { return mBuffer; }
+
 protected:
 #if CHIP_SYSTEM_CONFIG_USE_LWIP
     // For use via LwIPPacketBufferView only.
@@ -660,6 +662,8 @@ protected:
         return static_cast<struct pbuf *>(handle.mBuffer);
     }
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
+
+
 
 private:
     PacketBufferHandle(const PacketBufferHandle &) = delete;
@@ -676,8 +680,6 @@ private:
         }
         return PacketBufferHandle(buffer);
     }
-
-    PacketBuffer * Get() const { return mBuffer; }
 
     bool operator==(const PacketBufferHandle & aOther) { return mBuffer == aOther.mBuffer; }
 
@@ -809,15 +811,6 @@ namespace Inet {
 class UDPEndPointImplLwIP;
 } // namespace Inet
 
-#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-// TODO : Temp Implementation issue : 13085
-// Still use LwIP buffer even if using OpenThread UDP implementation
-// since decoupling of LwIP from OpenThread is still in progress
-namespace Inet {
-class UDPEndPointImplOT;
-} // namespace Inet
-#endif
-
 namespace System {
 
 /**
@@ -835,15 +828,43 @@ private:
      */
     static struct pbuf * UnsafeGetLwIPpbuf(const PacketBufferHandle & handle) { return PacketBufferHandle::GetLwIPpbuf(handle); }
     friend class Inet::UDPEndPointImplLwIP;
-#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-    // TODO : Temp Implementation issue : 13085
-    // Still use LwIP buffer even if using OpenThread UDP implementation
-    // since decoupling of LwIP from OpenThread is still in progress
-    friend class Inet::UDPEndPointImplOT;
-#endif
 };
 
 } // namespace System
 } // namespace chip
 
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
+
+
+// #if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+
+// namespace chip {
+
+// namespace Inet {
+// class UDPEndPointImplOT;
+// } // namespace Inet
+
+// namespace System {
+
+// /**
+//  * Provide low-level access to a raw `otMessage *`, limited to specific classes that interface with OpenThread.
+//  */
+// class OpenThreadPacketBufferView : public PacketBufferHandle
+// {
+// private:
+//     /**
+//      * Borrow a raw OpenThread `otMessage *`.
+//      *
+//      * @brief The caller has access but no ownership.
+//      *
+//      * @note This should be used ONLY by low-level code interfacing with OpenThread.
+//      */
+//     static struct pbuf * UnsafeGetOpenThreadBuffer(const PacketBufferHandle & handle) { return PacketBufferHandle::GetOtMessage(handle); }
+
+//     friend class Inet::UDPEndPointImplOT;
+// };
+
+// } // namespace System
+// } // namespace chip
+
+// #endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
