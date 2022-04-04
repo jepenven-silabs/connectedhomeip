@@ -33,7 +33,7 @@
 #include <inet/IPAddress.h>
 #include <lib/support/CodeUtils.h>
 
-#if !CHIP_SYSTEM_CONFIG_USE_LWIP
+#if CHIP_SYSTEM_CONFIG_USE_SOCKETS
 #include <arpa/inet.h>
 #endif
 
@@ -55,7 +55,7 @@ char * IPAddress::ToString(char * buf, uint32_t bufSize) const
         ip6_addr_t ip6_addr = ToIPv6();
         ip6addr_ntoa_r(&ip6_addr, buf, (int) bufSize);
     }
-#else // !CHIP_SYSTEM_CONFIG_USE_LWIP
+#elif CHIP_SYSTEM_CONFIG_USE_SOCKETS
     // socklen_t is sometimes signed, sometimes not, so the only safe way to do
     // this is to promote everything to an unsigned type that's known to be big
     // enough for everything, then cast back to uint32_t after taking the min.
@@ -77,6 +77,9 @@ char * IPAddress::ToString(char * buf, uint32_t bufSize) const
         // This cast is safe because |s| points into |buf| which is not const.
         buf = const_cast<char *>(s);
     }
+#elif CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+    otIp6Address addr = ToIPv6();
+    otIp6AddressToString(&addr, buf, static_cast<uint16_t>(bufSize));
 #endif // !CHIP_SYSTEM_CONFIG_USE_LWIP
 
     return buf;
@@ -91,7 +94,7 @@ bool IPAddress::FromString(const char * str, IPAddress & output)
         ip4_addr_t ipv4Addr;
         if (!ip4addr_aton(str, &ipv4Addr))
             return false;
-#else  // !CHIP_SYSTEM_CONFIG_USE_LWIP
+#elif CHIP_SYSTEM_CONFIG_USE_SOCKETS
         struct in_addr ipv4Addr;
         if (inet_pton(AF_INET, str, &ipv4Addr) < 1)
             return false;
@@ -105,11 +108,15 @@ bool IPAddress::FromString(const char * str, IPAddress & output)
         ip6_addr_t ipv6Addr;
         if (!ip6addr_aton(str, &ipv6Addr))
             return false;
-#else  // !CHIP_SYSTEM_CONFIG_USE_LWIP
+#elif CHIP_SYSTEM_CONFIG_USE_SOCKETS
         struct in6_addr ipv6Addr;
         if (inet_pton(AF_INET6, str, &ipv6Addr) < 1)
             return false;
-#endif // !CHIP_SYSTEM_CONFIG_USE_LWIP
+#elif CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+    otIp6Address ipv6Addr;
+    if (OT_ERROR_NONE != otIp6AddressFromString(str, &ipv6Addr))
+        return false;
+#endif
         output = IPAddress(ipv6Addr);
     }
 

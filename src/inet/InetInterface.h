@@ -49,6 +49,10 @@ struct net_if_ipv4;
 struct net_if_ipv6;
 #endif // CHIP_SYSTEM_CONFIG_USE_ZEPHYR_NET_IF
 
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+struct otIp6AddressInfo;
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -89,6 +93,11 @@ public:
 #if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_NET_IF
     using PlatformType                       = int;
     static constexpr size_t kMaxIfNameLength = Z_DEVICE_MAX_NAME_LEN;
+#endif
+
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+    using PlatformType                       = unsigned int;
+    static constexpr size_t kMaxIfNameLength = 6;
 #endif
 
     ~InterfaceId() = default;
@@ -193,6 +202,11 @@ private:
 #if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_NET_IF
     static constexpr PlatformType kPlatformNull = 0;
 #endif
+
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+    static constexpr PlatformType kPlatformNull = 0;
+#endif
+
     PlatformType mPlatformInterface;
 };
 
@@ -344,6 +358,10 @@ protected:
     InterfaceId::PlatformType mCurrentId = 1;
     net_if * mCurrentInterface           = nullptr;
 #endif // CHIP_SYSTEM_CONFIG_USE_ZEPHYR_NET_IF
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+    struct otIp6AddressInfo * mCurNetif;
+#endif
+
 };
 
 /**
@@ -522,7 +540,24 @@ private:
     net_if_ipv6 * mIpv6 = nullptr;
     int mCurAddrIndex   = -1;
 #endif // CHIP_SYSTEM_CONFIG_USE_ZEPHYR_NET_IF
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+    otIp6AddressInfo * mAddrInfoList;
+    int mCurAddrIndex;
+    InterfaceIterator mIntfIter;
+#endif // #if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+
 };
+
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+inline InterfaceIterator::InterfaceIterator(void) {}
+inline InterfaceAddressIterator::InterfaceAddressIterator(void){}
+inline InterfaceIterator::~InterfaceIterator()               = default;
+inline InterfaceAddressIterator::~InterfaceAddressIterator() = default;
+inline bool InterfaceIterator::HasCurrent(void)
+{
+    return mCurNetif != NULL;
+}
+#endif
 
 #if CHIP_SYSTEM_CONFIG_USE_LWIP
 

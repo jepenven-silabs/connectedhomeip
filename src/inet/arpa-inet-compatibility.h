@@ -46,4 +46,20 @@
 #endif // defined(LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS)
 
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
+
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+#ifndef htons
+#define htons(x) (x)
+#endif
+#ifndef ntohs
+#define ntohs(x) (x)
+#endif
+#ifndef htonl
+#define htonl(x) (x)
+#endif
+#ifndef ntohl
+#define ntohl(x) (x)
+#endif
+#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+
 #endif // !CHIP_SYSTEM_CONFIG_USE_SOCKETS

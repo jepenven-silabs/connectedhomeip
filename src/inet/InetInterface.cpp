@@ -63,6 +63,116 @@
 namespace chip {
 namespace Inet {
 
+#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+CHIP_ERROR InterfaceId::GetInterfaceName(char * nameBuf, size_t nameBufSize) const
+{
+    if (mPlatformInterface && nameBufSize >= kMaxIfNameLength)
+    {
+        nameBuf[0] = 'o';
+        nameBuf[1] = 't';
+        nameBuf[2] = 0;
+    }
+    else
+    {
+        nameBuf[0] = 0;
+    }
+
+    return CHIP_NO_ERROR;
+}
+CHIP_ERROR InterfaceId::InterfaceNameToId(const char * intfName, InterfaceId & interface)
+{
+    if (strlen(intfName) < 3)
+    {
+        return INET_ERROR_UNKNOWN_INTERFACE;
+    }
+    char * parseEnd;
+    unsigned long intfNum = strtoul(intfName + 2, &parseEnd, 10);
+    if (*parseEnd != 0 || intfNum > UINT8_MAX)
+    {
+        return INET_ERROR_UNKNOWN_INTERFACE;
+    }
+
+    interface           = InterfaceId(intfNum);
+    if (intfNum == 0)
+    {
+        return INET_ERROR_UNKNOWN_INTERFACE;
+    }
+    return CHIP_NO_ERROR;
+}
+
+bool InterfaceIterator::Next()
+{
+    return false;
+    // // Verify the previous netif is still on the list if netifs.  If so,
+    // // advance to the next nextif.
+    // struct otIp6AddressInfo * prevNetif = mCurNetif;
+
+    // for (mCurNetif = mAddrInfoList; mCurNetif != NULL; mCurNetif = mCurNetif->next)
+    // {
+    //     if (mCurNetif == prevNetif)
+    //     {
+    //         mCurNetif = mCurNetif->next;
+    //         break;
+    //     }
+    // }
+
+    // return mCurNetif != NULL;
+}
+bool InterfaceAddressIterator::HasCurrent()
+{
+    return mIntfIter.HasCurrent();
+}
+
+bool InterfaceAddressIterator::Next()
+{
+    // mCurAddrIndex++;
+
+    // while (mIntfIter.HasCurrent())
+    // {
+    //     struct netif * curIntf = mIntfIter.GetInterfaceId().GetPlatformInterface();
+
+    //     while (mCurAddrIndex < LWIP_IPV6_NUM_ADDRESSES)
+    //     {
+    //         if (ip6_addr_isvalid(netif_ip6_addr_state(curIntf, mCurAddrIndex)))
+    //         {
+    //             return true;
+    //         }
+    //         mCurAddrIndex++;
+    //     }
+
+    //     mIntfIter.Next();
+    //     mCurAddrIndex = 0;
+    // }
+
+    return false;
+}
+CHIP_ERROR InterfaceAddressIterator::GetAddress(IPAddress & outIPAddress)
+{
+    if (!HasCurrent())
+    {
+        return CHIP_ERROR_SENTINEL;
+    }
+
+    // if (mCurAddrIndex < LWIP_IPV6_NUM_ADDRESSES)
+    // {
+        outIPAddress = IPAddress((*(mAddrInfoList[mCurAddrIndex].mAddress)));
+        return CHIP_NO_ERROR;
+    // }
+
+    // return CHIP_ERROR_INTERNAL;
+}
+
+uint8_t InterfaceAddressIterator::GetPrefixLength()
+{
+    if (HasCurrent())
+    {
+        return 64;
+    }
+    return 0;
+}
+
+#endif
+
 #if CHIP_SYSTEM_CONFIG_USE_LWIP
 
 CHIP_ERROR InterfaceId::GetInterfaceName(char * nameBuf, size_t nameBufSize) const
