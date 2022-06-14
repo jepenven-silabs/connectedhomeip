@@ -22,6 +22,7 @@
 #include "AppEvent.h"
 #include "LEDWidget.h"
 #ifdef DISPLAY_ENABLED
+#include "demo-ui.h"
 #include "lcd.h"
 #ifdef QR_CODE_ENABLED
 #include "qrcodegen.h"
@@ -72,6 +73,13 @@
 #define LIGHT_LED &sl_led_led1
 #define APP_FUNCTION_BUTTON &sl_button_btn0
 #define APP_LIGHT_SWITCH &sl_button_btn1
+
+#ifdef DISPLAY_ENABLED
+#define T_LINK_STATUS_UP "LINKED"
+#define T_LINK_STATUS_DOWN "DOWN"
+#define T_LIGHT_ON "   ON"
+#define T_LIGHT_OFF "   OFF"
+#endif
 
 using namespace chip;
 using namespace ::chip::DeviceLayer;
@@ -308,6 +316,12 @@ void AppTask::AppTaskMain(void * pvParameter)
 {
     AppEvent event;
 
+#ifdef DISPLAY_ENABLED
+    bool demoUIInitialized = false;
+    bool savedLightState   = false;
+
+#endif
+
     CHIP_ERROR err = sAppTask.Init();
     if (err != CHIP_NO_ERROR)
     {
@@ -386,6 +400,25 @@ void AppTask::AppTaskMain(void * pvParameter)
 #endif
             {
                 sStatusLED.Blink(950, 50);
+#ifdef DISPLAY_ENABLED
+                if (!demoUIInitialized)
+                {
+                    demoUIInitialized = true;
+                    demoUIInit();
+                    demoUIClearMainScreen((uint8_t *) "Light", true, true);
+                    demoUIDisplayId(DEMO_UI_PROTOCOL1, GetLinkStatusText(true));
+                    demoUIDisplayId(DEMO_UI_PROTOCOL2, GetLightStatusText(false));
+                }
+                else
+                {
+                    if (savedLightState != LightMgr().IsLightOn())
+                    {
+                        demoUIDisplayId(DEMO_UI_PROTOCOL1, GetLinkStatusText(true));
+                        savedLightState = LightMgr().IsLightOn();
+                        demoUIDisplayId(DEMO_UI_PROTOCOL2, GetLightStatusText(savedLightState));
+                    }
+                }
+#endif
             }
             else if (sHaveBLEConnections) { sStatusLED.Blink(100, 100); }
             else { sStatusLED.Blink(50, 950); }
@@ -394,6 +427,16 @@ void AppTask::AppTaskMain(void * pvParameter)
         sStatusLED.Animate();
         sLightLED.Animate();
     }
+}
+
+uint8_t * AppTask::GetLightStatusText(bool status)
+{
+    return (uint8_t *) (status ? T_LIGHT_ON : T_LIGHT_OFF);
+}
+
+uint8_t * AppTask::GetLinkStatusText(bool status)
+{
+    return (uint8_t *) (status ? T_LINK_STATUS_UP : T_LINK_STATUS_DOWN);
 }
 
 void AppTask::LightActionEventHandler(AppEvent * aEvent)
@@ -410,15 +453,8 @@ void AppTask::LightActionEventHandler(AppEvent * aEvent)
     }
     else if (aEvent->Type == AppEvent::kEventType_Button)
     {
-        if (LightMgr().IsLightOn())
-        {
-            action = LightingManager::OFF_ACTION;
-        }
-        else
-        {
-            action = LightingManager::ON_ACTION;
-        }
-        actor = AppEvent::kEventType_Button;
+        action = LightMgr().IsLightOn() ? LightingManager::OFF_ACTION : LightingManager::ON_ACTION;
+        actor  = AppEvent::kEventType_Button;
     }
     else
     {
@@ -590,16 +626,16 @@ void AppTask::StartTimer(uint32_t aTimeoutInMs)
 void AppTask::ActionInitiated(LightingManager::Action_t aAction, int32_t aActor)
 {
     // Action initiated, update the light led
-    if (aAction == LightingManager::ON_ACTION)
-    {
-        EFR32_LOG("Turning light ON")
-        sLightLED.Set(true);
-    }
-    else if (aAction == LightingManager::OFF_ACTION)
-    {
-        EFR32_LOG("Turning light OFF")
-        sLightLED.Set(false);
-    }
+    bool lightOn = aAction == LightingManager::ON_ACTION;
+    EFR32_LOG("Turning light %s", (lightOn) ? "On" : "Off")
+    sLightLED.Set(lightOn);
+
+#ifdef DISPLAY_ENABLED
+    demoUIClearMainScreen((uint8_t *) "Light", true, true);
+    demoUIDisplayLight(lightOn);
+    demoUIDisplayId(DEMO_UI_PROTOCOL1, GetLinkStatusText(true));
+    demoUIDisplayId(DEMO_UI_PROTOCOL2, GetLightStatusText(lightOn));
+#endif
 
     if (aActor == AppEvent::kEventType_Button)
     {
