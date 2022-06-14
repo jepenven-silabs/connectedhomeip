@@ -62,6 +62,8 @@ private:
     void CancelTimer(void);
 
     void DispatchEvent(AppEvent * event);
+    static uint8_t * GetLightStatusText(bool status);
+    static uint8_t * GetLinkStatusText(bool status);
 
     static void FunctionTimerEventHandler(AppEvent * aEvent);
     static void FunctionHandler(AppEvent * aEvent);
