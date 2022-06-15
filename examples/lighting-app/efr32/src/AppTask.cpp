@@ -318,8 +318,6 @@ void AppTask::AppTaskMain(void * pvParameter)
 
 #ifdef DISPLAY_ENABLED
     bool demoUIInitialized = false;
-    bool savedLightState   = false;
-
 #endif
 
     CHIP_ERROR err = sAppTask.Init();
@@ -408,15 +406,6 @@ void AppTask::AppTaskMain(void * pvParameter)
                     demoUIClearMainScreen((uint8_t *) "Light", true, true);
                     demoUIDisplayId(DEMO_UI_PROTOCOL1, GetLinkStatusText(true));
                     demoUIDisplayId(DEMO_UI_PROTOCOL2, GetLightStatusText(false));
-                }
-                else
-                {
-                    if (savedLightState != LightMgr().IsLightOn())
-                    {
-                        demoUIDisplayId(DEMO_UI_PROTOCOL1, GetLinkStatusText(true));
-                        savedLightState = LightMgr().IsLightOn();
-                        demoUIDisplayId(DEMO_UI_PROTOCOL2, GetLightStatusText(savedLightState));
-                    }
                 }
 #endif
             }
