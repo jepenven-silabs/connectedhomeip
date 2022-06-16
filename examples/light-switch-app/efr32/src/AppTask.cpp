@@ -263,6 +263,56 @@ CHIP_ERROR AppTask::Init()
     return err;
 }
 
+CHIP_ERROR AppTask::InitGroupSwitch()
+{
+    // Set Group Info
+    static const chip::GroupId kGroup1   = 0x1234;
+    static const chip::KeysetId kKeySet1 = 0x4321;
+    Credentials::GroupDataProvider * provider = Credentials::GetGroupDataProvider();
+
+    // retrieve compressed fabric ID
+    FabricInfo * fabricInfo = Server::GetInstance().GetFabricTable().FindFabricWithIndex(1);
+
+    uint8_t compressed_fabric_id[sizeof(uint64_t)];
+    chip::MutableByteSpan compressed_fabric_id_span(compressed_fabric_id);
+    ReturnLogErrorOnFailure(fabricInfo->GetCompressedId(compressed_fabric_id_span));
+
+    // Groups
+
+    const chip::Credentials::GroupDataProvider::GroupInfo group1(kGroup1, "Light");
+    ReturnErrorOnFailure(provider->SetGroupInfo(1 /*fabric Index */, group1));
+    ReturnErrorOnFailure(provider->AddEndpoint(1 /*fabric Index */ , group1.group_id, 1));
+
+    // Key Sets
+
+    chip::Credentials::GroupDataProvider::KeySet keyset1(kKeySet1,
+                                                         chip::Credentials::GroupDataProvider::SecurityPolicy::kTrustFirst, 3);
+    const chip::Credentials::GroupDataProvider::EpochKey epoch_keys1[] = {
+        { 1110000, { 0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf } },
+        { 1110001, { 0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf } },
+        { 1110002, { 0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf } },
+    };
+    memcpy(keyset1.epoch_keys, epoch_keys1, sizeof(epoch_keys1));
+    CHIP_ERROR err = provider->SetKeySet(1 /*fabric Index */, compressed_fabric_id_span, keyset1);
+    ReturnErrorOnFailure(err);
+
+    provider->SetGroupKeyAt(1 /*fabric Index */, 0, chip::Credentials::GroupDataProvider::GroupKey(kGroup1, kKeySet1));
+
+    // Set switch binding
+
+    EmberBindingTableEntry * entry = Platform::New<EmberBindingTableEntry>();
+    entry->type                    = EMBER_MULTICAST_BINDING;
+    entry->fabricIndex             = 1;
+    entry->groupId                 = 0x1234;
+    entry->local                   = 1; // Hardcoded to endpoint 1 for now
+    entry->clusterId.SetValue(6);       // Hardcoded to OnOff cluster for now
+
+    DeviceLayer::PlatformMgr().ScheduleWork(BindingWorkerFunction, reinterpret_cast<intptr_t>(entry));
+
+    return CHIP_NO_ERROR;
+
+}
+
 void AppTask::AppTaskMain(void * pvParameter)
 {
     AppEvent event;
@@ -279,6 +329,15 @@ void AppTask::AppTaskMain(void * pvParameter)
     }
 
     EFR32_LOG("App Task started");
+
+    if (Server::GetInstance().GetFabricTable().FabricCount() >= 1)
+    {
+        err = sAppTask.InitGroupSwitch();
+        if (err != CHIP_NO_ERROR)
+        {
+            EFR32_LOG("AppTask.InitGroupSwitch() failed");
+        }
+    }
 
     while (true)
     {

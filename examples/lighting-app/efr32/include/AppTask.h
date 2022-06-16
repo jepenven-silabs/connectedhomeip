@@ -56,6 +56,8 @@ private:
 
     CHIP_ERROR Init();
 
+    CHIP_ERROR InitGroupSwitch();
+
     static void ActionInitiated(LightingManager::Action_t aAction, int32_t aActor);
     static void ActionCompleted(LightingManager::Action_t aAction);
 

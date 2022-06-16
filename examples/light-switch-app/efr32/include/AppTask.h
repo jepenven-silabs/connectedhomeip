@@ -61,6 +61,8 @@ private:
 
     void CancelTimer(void);
 
+    CHIP_ERROR InitGroupSwitch();
+
     void DispatchEvent(AppEvent * event);
 
     static void FunctionTimerEventHandler(AppEvent * aEvent);
