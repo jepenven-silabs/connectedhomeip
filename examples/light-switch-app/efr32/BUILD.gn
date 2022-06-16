@@ -118,6 +118,7 @@ efr32_sdk("sdk") {
     "CHIP_DEVICE_CONFIG_USE_TEST_SETUP_PIN_CODE=${setupPinCode}",
     "CHIP_DEVICE_CONFIG_USE_TEST_SETUP_DISCRIMINATOR=${setupDiscriminator}",
     "OTA_PERIODIC_TIMEOUT=${OTA_periodic_query_timeout}",
+    "IS_DEMO_SWITCH=1",
   ]
 
   if (chip_enable_pw_rpc) {

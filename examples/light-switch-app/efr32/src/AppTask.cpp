@@ -25,6 +25,7 @@
 #include "sl_simple_led_instances.h"
 
 #ifdef DISPLAY_ENABLED
+#include "demo-ui.h"
 #include "lcd.h"
 #include "qrcodegen.h"
 #endif // DISPLAY_ENABLED
@@ -72,6 +73,8 @@
 #define LIGHT_LED &sl_led_led1
 #define APP_FUNCTION_BUTTON &sl_button_btn0
 #define APP_LIGHT_SWITCH &sl_button_btn1
+
+bool mCurrentButtonState = false;
 
 using namespace chip;
 using namespace ::chip::DeviceLayer;
@@ -260,6 +263,10 @@ void AppTask::AppTaskMain(void * pvParameter)
 {
     AppEvent event;
 
+#ifdef DISPLAY_ENABLED
+    bool demoUIInitialized = false;
+#endif
+
     CHIP_ERROR err = sAppTask.Init();
     if (err != CHIP_NO_ERROR)
     {
@@ -338,6 +345,16 @@ void AppTask::AppTaskMain(void * pvParameter)
 #endif
             {
                 sStatusLED.Blink(950, 50);
+#ifdef DISPLAY_ENABLED
+                if (!demoUIInitialized)
+                {
+                    demoUIInitialized = true;
+                    demoUIInit();
+                    demoUIClearMainScreen((uint8_t *) "Switch", true, true);
+                    demoUIDisplayId(DEMO_UI_PROTOCOL1, (uint8_t *) "LINKED");
+                    demoUIDisplayId(DEMO_UI_PROTOCOL2, (uint8_t *) (mCurrentButtonState ? "   ON" : "   OFF"));
+                }
+#endif
             }
             else if (sHaveBLEConnections) { sStatusLED.Blink(100, 100); }
             else { sStatusLED.Blink(50, 950); }
@@ -352,8 +369,27 @@ void AppTask::SwitchActionEventHandler(AppEvent * aEvent)
     if (aEvent->Type == AppEvent::kEventType_Button)
     {
         BindingCommandData * data = Platform::New<BindingCommandData>();
-        data->commandId           = chip::app::Clusters::OnOff::Commands::Toggle::Id;
         data->clusterId           = chip::app::Clusters::OnOff::Id;
+        data->isGroup             = true;
+
+        if (mCurrentButtonState)
+        {
+            mCurrentButtonState = false;
+            data->commandId     = chip::app::Clusters::OnOff::Commands::Off::Id;
+        }
+        else
+        {
+            data->commandId     = chip::app::Clusters::OnOff::Commands::On::Id;
+            mCurrentButtonState = true;
+        }
+
+#ifdef DISPLAY_ENABLED
+        demoUIClearMainScreen((uint8_t *) "Switch", true, true);
+        demoUIDisplaySwitch(mCurrentButtonState);
+        demoUIDisplayId(DEMO_UI_PROTOCOL1, (uint8_t *) "LINKED");
+        demoUIDisplayId(DEMO_UI_PROTOCOL2, (uint8_t *) (mCurrentButtonState ? "   ON" : "   OFF"));
+
+#endif
 
         DeviceLayer::PlatformMgr().ScheduleWork(SwitchWorkerFunction, reinterpret_cast<intptr_t>(data));
     }
