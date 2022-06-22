@@ -68,6 +68,7 @@ function getManualTests() {
   const Groups = [
     'TestGroupDemoCommand',
     'TestGroupDemoConfig',
+    'TestGroupDemoConfig_binding',
     'Test_TC_GR_1_1',
     'Test_TC_GR_2_1',
     'Test_TC_GR_2_2',

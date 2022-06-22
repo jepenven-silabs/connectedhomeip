@@ -273,6 +273,7 @@ public:
         printf("Test_TC_DD_3_20\n");
         printf("TestGroupDemoCommand\n");
         printf("TestGroupDemoConfig\n");
+        printf("TestGroupDemoConfig_binding\n");
         printf("Test_TC_GR_1_1\n");
         printf("Test_TC_GR_2_1\n");
         printf("Test_TC_GR_2_2\n");
@@ -68070,6 +68071,213 @@ private:
     }
 };
 
+class TestGroupDemoConfig_bindingSuite : public TestCommand
+{
+public:
+    TestGroupDemoConfig_bindingSuite(CredentialIssuerCommands * credsIssuerConfig) :
+        TestCommand("TestGroupDemoConfig_binding", 6, credsIssuerConfig)
+    {
+        AddArgument("nodeId", 0, UINT64_MAX, &mNodeId);
+        AddArgument("cluster", &mCluster);
+        AddArgument("endpoint", 0, UINT16_MAX, &mEndpoint);
+        AddArgument("timeout", 0, UINT16_MAX, &mTimeout);
+    }
+
+    ~TestGroupDemoConfig_bindingSuite() {}
+
+    chip::System::Clock::Timeout GetWaitDuration() const override
+    {
+        return chip::System::Clock::Seconds16(mTimeout.ValueOr(kTimeoutInSeconds));
+    }
+
+private:
+    chip::Optional<chip::NodeId> mNodeId;
+    chip::Optional<chip::CharSpan> mCluster;
+    chip::Optional<chip::EndpointId> mEndpoint;
+    chip::Optional<uint16_t> mTimeout;
+
+    chip::EndpointId GetEndpoint(chip::EndpointId endpoint) { return mEndpoint.HasValue() ? mEndpoint.Value() : endpoint; }
+
+    //
+    // Tests methods
+    //
+
+    void OnResponse(const chip::app::StatusIB & status, chip::TLV::TLVReader * data) override
+    {
+        bool shouldContinue = false;
+
+        switch (mTestIndex - 1)
+        {
+        case 0:
+            VerifyOrReturn(CheckValue("status", chip::to_underlying(status.mStatus), 0));
+            shouldContinue = true;
+            break;
+        case 1:
+            VerifyOrReturn(CheckValue("status", chip::to_underlying(status.mStatus), 0));
+            {
+                chip::app::Clusters::Groups::Commands::AddGroupResponse::DecodableType value;
+                VerifyOrReturn(CheckDecodeValue(chip::app::DataModel::Decode(*data, value)));
+                VerifyOrReturn(CheckValue("status", value.status, 0U));
+
+                VerifyOrReturn(CheckValue("groupId", value.groupId, 257U));
+            }
+            break;
+        case 2:
+            VerifyOrReturn(CheckValue("status", chip::to_underlying(status.mStatus), 0));
+            break;
+        case 3:
+            VerifyOrReturn(CheckValue("status", chip::to_underlying(status.mStatus), 0));
+            break;
+        case 4:
+            VerifyOrReturn(CheckValue("status", chip::to_underlying(status.mStatus), 0));
+            break;
+        case 5:
+            VerifyOrReturn(CheckValue("status", chip::to_underlying(status.mStatus), 0));
+            break;
+        default:
+            LogErrorOnFailure(ContinueOnChipMainThread(CHIP_ERROR_INVALID_ARGUMENT));
+        }
+
+        if (shouldContinue)
+        {
+            ContinueOnChipMainThread(CHIP_NO_ERROR);
+        }
+    }
+
+    CHIP_ERROR DoTestStep(uint16_t testIndex) override
+    {
+        using namespace chip::app::Clusters;
+        switch (testIndex)
+        {
+        case 0: {
+            LogStep(0, "Wait for the commissioned device to be retrieved");
+            ListFreer listFreer;
+            chip::app::Clusters::DelayCommands::Commands::WaitForCommissionee::Type value;
+            value.nodeId = mNodeId.HasValue() ? mNodeId.Value() : 305414945ULL;
+            return WaitForCommissionee(kIdentityAlpha, value);
+        }
+        case 1: {
+            LogStep(1, "Add Group 1 - endpoint 1");
+            ListFreer listFreer;
+            chip::app::Clusters::Groups::Commands::AddGroup::Type value;
+            value.groupId   = 257U;
+            value.groupName = chip::Span<const char>("Group #1garbage: not in length on purpose", 8);
+            return SendCommand(kIdentityAlpha, GetEndpoint(1), Groups::Id, Groups::Commands::AddGroup::Id, value, chip::NullOptional
+
+            );
+        }
+        case 2: {
+            LogStep(2, "KeySet Write 1");
+            ListFreer listFreer;
+            chip::app::Clusters::GroupKeyManagement::Commands::KeySetWrite::Type value;
+
+            value.groupKeySet.groupKeySetID = 417U;
+            value.groupKeySet.groupKeySecurityPolicy =
+                static_cast<chip::app::Clusters::GroupKeyManagement::GroupKeySecurityPolicy>(0);
+            value.groupKeySet.epochKey0.SetNonNull();
+            value.groupKeySet.epochKey0.Value() = chip::ByteSpan(
+                chip::Uint8::from_const_char(
+                    "\240\241\242\243\244\245\246\247\250\251\252\253\254\255\256\257garbage: not in length on purpose"),
+                16);
+            value.groupKeySet.epochStartTime0.SetNonNull();
+            value.groupKeySet.epochStartTime0.Value() = 1110000ULL;
+            value.groupKeySet.epochKey1.SetNonNull();
+            value.groupKeySet.epochKey1.Value() = chip::ByteSpan(
+                chip::Uint8::from_const_char(
+                    "\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277garbage: not in length on purpose"),
+                16);
+            value.groupKeySet.epochStartTime1.SetNonNull();
+            value.groupKeySet.epochStartTime1.Value() = 1110001ULL;
+            value.groupKeySet.epochKey2.SetNonNull();
+            value.groupKeySet.epochKey2.Value() = chip::ByteSpan(
+                chip::Uint8::from_const_char(
+                    "\300\301\302\303\304\305\306\307\310\311\312\313\314\315\316\317garbage: not in length on purpose"),
+                16);
+            value.groupKeySet.epochStartTime2.SetNonNull();
+            value.groupKeySet.epochStartTime2.Value() = 1110002ULL;
+
+            return SendCommand(kIdentityAlpha, GetEndpoint(0), GroupKeyManagement::Id,
+                               GroupKeyManagement::Commands::KeySetWrite::Id, value, chip::NullOptional
+
+            );
+        }
+        case 3: {
+            LogStep(3, "Map Group Key Set to group ID on a given fabric");
+            ListFreer listFreer;
+            chip::app::DataModel::List<const chip::app::Clusters::GroupKeyManagement::Structs::GroupKeyMapStruct::Type> value;
+
+            {
+                auto * listHolder_0 = new ListHolder<chip::app::Clusters::GroupKeyManagement::Structs::GroupKeyMapStruct::Type>(1);
+                listFreer.add(listHolder_0);
+
+                listHolder_0->mList[0].groupId       = 257U;
+                listHolder_0->mList[0].groupKeySetID = 417U;
+                listHolder_0->mList[0].fabricIndex   = 1U;
+
+                value = chip::app::DataModel::List<chip::app::Clusters::GroupKeyManagement::Structs::GroupKeyMapStruct::Type>(
+                    listHolder_0->mList, 1);
+            }
+            return WriteAttribute(kIdentityAlpha, GetEndpoint(0), GroupKeyManagement::Id,
+                                  GroupKeyManagement::Attributes::GroupKeyMap::Id, value, chip::NullOptional, chip::NullOptional);
+        }
+        case 4: {
+            LogStep(4, "Install ACLs for test");
+            ListFreer listFreer;
+            chip::app::DataModel::List<const chip::app::Clusters::AccessControl::Structs::AccessControlEntry::Type> value;
+
+            {
+                auto * listHolder_0 = new ListHolder<chip::app::Clusters::AccessControl::Structs::AccessControlEntry::Type>(2);
+                listFreer.add(listHolder_0);
+
+                listHolder_0->mList[0].privilege = static_cast<chip::app::Clusters::AccessControl::Privilege>(5);
+                listHolder_0->mList[0].authMode  = static_cast<chip::app::Clusters::AccessControl::AuthMode>(2);
+                listHolder_0->mList[0].subjects.SetNull();
+                listHolder_0->mList[0].targets.SetNull();
+                listHolder_0->mList[0].fabricIndex = 1U;
+
+                listHolder_0->mList[1].privilege = static_cast<chip::app::Clusters::AccessControl::Privilege>(3);
+                listHolder_0->mList[1].authMode  = static_cast<chip::app::Clusters::AccessControl::AuthMode>(3);
+                listHolder_0->mList[1].subjects.SetNonNull();
+
+                {
+                    auto * listHolder_3 = new ListHolder<uint64_t>(1);
+                    listFreer.add(listHolder_3);
+                    listHolder_3->mList[0]                  = 257ULL;
+                    listHolder_0->mList[1].subjects.Value() = chip::app::DataModel::List<uint64_t>(listHolder_3->mList, 1);
+                }
+                listHolder_0->mList[1].targets.SetNull();
+                listHolder_0->mList[1].fabricIndex = 1U;
+
+                value = chip::app::DataModel::List<chip::app::Clusters::AccessControl::Structs::AccessControlEntry::Type>(
+                    listHolder_0->mList, 2);
+            }
+            return WriteAttribute(kIdentityAlpha, GetEndpoint(0), AccessControl::Id, AccessControl::Attributes::Acl::Id, value,
+                                  chip::NullOptional, chip::NullOptional);
+        }
+        case 5: {
+            LogStep(5, "Write binding table (endpoint 0)");
+            ListFreer listFreer;
+            chip::app::DataModel::List<const chip::app::Clusters::Binding::Structs::TargetStruct::Type> value;
+
+            {
+                auto * listHolder_0 = new ListHolder<chip::app::Clusters::Binding::Structs::TargetStruct::Type>(1);
+                listFreer.add(listHolder_0);
+
+                listHolder_0->mList[0].group.Emplace();
+                listHolder_0->mList[0].group.Value() = 257U;
+                listHolder_0->mList[0].fabricIndex   = 1U;
+
+                value =
+                    chip::app::DataModel::List<chip::app::Clusters::Binding::Structs::TargetStruct::Type>(listHolder_0->mList, 1);
+            }
+            return WriteAttribute(kIdentityAlpha, GetEndpoint(1), Binding::Id, Binding::Attributes::Binding::Id, value,
+                                  chip::NullOptional, chip::NullOptional);
+        }
+        }
+        return CHIP_NO_ERROR;
+    }
+};
+
 class Test_TC_GR_1_1Suite : public TestCommand
 {
 public:
@@ -83357,6 +83565,7 @@ void registerCommandsTests(Commands & commands, CredentialIssuerCommands * creds
         make_unique<Test_TC_DD_3_20Suite>(credsIssuerConfig),
         make_unique<TestGroupDemoCommandSuite>(credsIssuerConfig),
         make_unique<TestGroupDemoConfigSuite>(credsIssuerConfig),
+        make_unique<TestGroupDemoConfig_bindingSuite>(credsIssuerConfig),
         make_unique<Test_TC_GR_1_1Suite>(credsIssuerConfig),
         make_unique<Test_TC_GR_2_1Suite>(credsIssuerConfig),
         make_unique<Test_TC_GR_2_2Suite>(credsIssuerConfig),
