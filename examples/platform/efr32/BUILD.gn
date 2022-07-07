@@ -16,6 +16,9 @@ import("//build_overrides/chip.gni")
 import("//build_overrides/efr32_sdk.gni")
 import("${chip_root}/src/lib/lib.gni")
 import("${efr32_sdk_build_root}/efr32_sdk.gni")
+import("${chip_root}/src/platform/device.gni")
+
+import("//args.gni")
 
 config("chip_examples_project_config") {
   include_dirs = [ "project_include" ]
@@ -86,4 +89,16 @@ source_set("efr32-attestation-credentials") {
   ]
 
   public_configs = [ ":attestation-credentials-config" ]
+}
+
+declare_args() {
+  # Build target to use for efr32 SDK. Use this to set global SDK defines.
+  efr32_example_target = ""
+}
+
+assert(efr32_example_target != "", "efr32_sdk_target must be specified")
+
+group("silabs_common")
+{
+  public_deps = [ efr32_example_target ]
 }

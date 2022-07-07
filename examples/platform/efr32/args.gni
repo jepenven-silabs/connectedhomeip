@@ -14,8 +14,27 @@
 
 import("//build_overrides/chip.gni")
 
+declare_args()
+{
+  # Disable LCD on supported devices
+  disable_lcd = false
+
+  # Monitor & log memory usage at runtime.
+  enable_heap_monitoring = false
+}
+
+declare_args() {
+  # Enables LCD Qr Code on supported devices
+  show_qr_code = !disable_lcd
+}
+
+# qr code cannot be true if lcd is disabled
+assert(!(disable_lcd && show_qr_code))
+
+
 chip_ble_project_config_include = "<CHIPProjectConfig.h>"
 chip_device_project_config_include = "<CHIPProjectConfig.h>"
 chip_project_config_include = "<CHIPProjectConfig.h>"
 chip_inet_project_config_include = "<CHIPProjectConfig.h>"
 chip_system_project_config_include = "<CHIPProjectConfig.h>"
+chip_enable_ota_requestor = true
