@@ -377,21 +377,49 @@ void Server::RejoinExistingMulticastGroups()
         auto * iterator = mGroupsProvider->IterateGroupInfo(fabric.GetFabricIndex());
         if (iterator)
         {
-            // GroupDataProvider was able to allocate rescources for an iterator
-            while (iterator->Next(groupInfo))
-            {
-                err = mTransports.MulticastGroupJoinLeave(
-                    Transport::PeerAddress::Multicast(fabric.GetFabricId(), groupInfo.group_id), true);
-                if (err != CHIP_NO_ERROR)
-                {
-                    ChipLogError(AppServer, "Error when trying to join Group %u of fabric index %u : %" CHIP_ERROR_FORMAT,
-                                 groupInfo.group_id, fabric.GetFabricIndex(), err.Format());
+            chip::Inet::InterfaceIterator interfaceIt;
+            chip::Inet::InterfaceId interfaceId = chip::Inet::InterfaceId::Null();
+            chip::Inet::IPAddressType addressType;
 
-                    // We assume the failure is caused by a network issue or a lack of rescources; neither of which will be solved
-                    // before the next join. Exit the loop to save rescources.
-                    iterator->Release();
-                    return;
+            while (interfaceIt.Next(&interfaceId, &addrType))
+            {
+                // GroupDataProvider was able to allocate rescources for an iterator
+                while (iterator->Next(groupInfo))
+                {
+                    chip::Inet::UDPEndPoint * listenUdp;
+                    ReturnErrorOnFailure(udpEndPointManager->NewEndPoint(&listenUdp));
+                    std::unique_ptr<chip::Inet::UDPEndPoint, EndpointInfo::EndPointDeletor> endPointHolder(listenUdp, {});
+
+                    ReturnErrorOnFailure(listenUdp->Bind(addressType, chip::Inet::IPAddress::Any, port, interfaceId));
+
+                    ReturnErrorOnFailure(listenUdp->Listen(OnUdpPacketReceived, nullptr /*OnReceiveError*/, this));
+
+                    err = listenUdp->JoinMulticastGroup(Transport::PeerAddress::Multicast(fabric.GetFabricId(), groupInfo.group_id), true);
+                    if (err != CHIP_NO_ERROR)
+                    {
+                        ChipLogError(AppServer, "Error when trying to join Group %u of fabric index %u : %" CHIP_ERROR_FORMAT,
+                                    groupInfo.group_id, fabric.GetFabricIndex(), err.Format());
+
+                        // We assume the failure is caused by a network issue or a lack of rescources; neither of which will be solved
+                        // before the next join. Exit the loop to save rescources.
+                        iterator->Release();
+                        return;
+                    }
                 }
+
+
+                // err = mTransports.MulticastGroupJoinLeave(
+                //     Transport::PeerAddress::Multicast(fabric.GetFabricId(), groupInfo.group_id), true);
+                // if (err != CHIP_NO_ERROR)
+                // {
+                //     ChipLogError(AppServer, "Error when trying to join Group %u of fabric index %u : %" CHIP_ERROR_FORMAT,
+                //                  groupInfo.group_id, fabric.GetFabricIndex(), err.Format());
+
+                //     // We assume the failure is caused by a network issue or a lack of rescources; neither of which will be solved
+                //     // before the next join. Exit the loop to save rescources.
+                //     iterator->Release();
+                //     return;
+                // }
             }
 
             iterator->Release();
