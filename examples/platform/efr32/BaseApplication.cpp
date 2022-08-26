@@ -23,11 +23,12 @@
 
 #include "AppConfig.h"
 #include "AppEvent.h"
-#include "AppTask.h"
+#include "BaseApplication.h"
 #include "LEDWidget.h"
 #include "sl_simple_led_instances.h"
 
 #ifdef DISPLAY_ENABLED
+#include "demo-ui.h"
 #include "lcd.h"
 #ifdef QR_CODE_ENABLED
 #include "qrcodegen.h"
@@ -39,7 +40,6 @@
 #include <app-common/zap-generated/cluster-id.h>
 #include <app/server/OnboardingCodesUtil.h>
 #include <app/server/Server.h>
-#include <app/util/attribute-storage.h>
 #include <assert.h>
 #include <lib/support/CodeUtils.h>
 #include <platform/CHIPDeviceLayer.h>

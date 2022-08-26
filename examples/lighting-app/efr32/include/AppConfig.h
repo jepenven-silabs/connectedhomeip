@@ -25,6 +25,8 @@
 
 #define APP_TASK_NAME "Lit"
 
+#define IS_DEMO_LIGHT 1
+
 // Time it takes in ms for the simulated actuator to move from one
 // state to another.
 #define ACTUATOR_MOVEMENT_PERIOS_MS 10
