@@ -70,7 +70,6 @@ template("efr32_sdk") {
     # Treat these includes as system includes, so warnings in them are not fatal.
     _include_dirs = [
       "${efr32_sdk_root}",
-      "${efr32_sdk_root}/hardware/kit/common/bsp",
       "${efr32_sdk_root}/hardware/board/inc",
       "${efr32_sdk_root}/hardware/driver/memlcd/inc",
       "${efr32_sdk_root}/hardware/driver/memlcd/src/ls013b7dh03",
