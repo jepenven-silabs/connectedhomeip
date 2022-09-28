@@ -28,6 +28,7 @@
 #include "sl_simple_led_instances.h"
 
 #ifdef DISPLAY_ENABLED
+#include "ThermostatUI.h"
 #include "lcd.h"
 #ifdef QR_CODE_ENABLED
 #include "qrcodegen.h"
@@ -136,12 +137,14 @@ using namespace ::chip::DeviceLayer;
 
 AppTask AppTask::sAppTask;
 
+
 CHIP_ERROR AppTask::Init()
 {
     CHIP_ERROR err = CHIP_NO_ERROR;
 
 #ifdef DISPLAY_ENABLED
     GetLCD().Init((uint8_t *) "Thermostat-App");
+    GetLCD().SetCustomUI(ThermostatUI::DrawUI);
 #endif
 
     err = BaseApplication::Init(&gIdentify);
@@ -210,6 +213,7 @@ void AppTask::ThermostatActionEventHandler(AppEvent * aEvent)
     if (aEvent->Type == AppEvent::kEventType_Button)
     {
         EFR32_LOG("App Button was pressed!");
+        GetLCD().WriteDemoUI(false);
         // TODO: Implement button functionnality
     }
 }

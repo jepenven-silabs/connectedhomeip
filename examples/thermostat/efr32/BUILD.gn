@@ -249,6 +249,7 @@ efr32_executable("thermostat_app") {
 
   if (!disable_lcd) {
     sources += [
+      "src/ThermostatUI.cpp",
       "${examples_plat_dir}/display/demo-ui.c",
       "${examples_plat_dir}/display/lcd.cpp",
     ]

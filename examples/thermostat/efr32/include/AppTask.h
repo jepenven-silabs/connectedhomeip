@@ -26,6 +26,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef DISPLAY_ENABLED
+#include "ThermostatUI.h"
+#endif
+
 #include "AppEvent.h"
 #include "BaseApplication.h"
 #include "FreeRTOS.h"
@@ -119,4 +123,5 @@ private:
      * @param aEvent button event being processed
      */
     static void ThermostatActionEventHandler(AppEvent * aEvent);
+
 };
