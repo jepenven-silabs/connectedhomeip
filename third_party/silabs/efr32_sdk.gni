@@ -609,13 +609,25 @@ template("efr32_sdk") {
         (defined(invoker.disable_lcd) && !invoker.disable_lcd) ||
         (defined(invoker.use_external_flash) && use_external_flash)) {
       sources += [
-        "${efr32_sdk_root}/hardware/driver/memlcd/src/memlcd_usart/sl_memlcd_spi.c",
         "${efr32_sdk_root}/platform/emdrv/uartdrv/src/uartdrv.c",
-        "${efr32_sdk_root}/platform/emlib/src/em_eusart.c",
+,
         "${efr32_sdk_root}/platform/emlib/src/em_leuart.c",
-        "${efr32_sdk_root}/platform/emlib/src/em_usart.c",
         "${sdk_support_root}/matter/efr32/${silabs_family}/${silabs_board}/autogen/sl_uartdrv_init.c",
       ]
+
+      # MG24 is using EUSART
+      if (silabs_family == "efr32mg24") {
+        sources += [
+          "${efr32_sdk_root}/platform/emlib/src/em_eusart.c"
+          "${efr32_sdk_root}/hardware/driver/memlcd/src/memlcd_eusart/sl_memlcd_spi.c",
+        ]
+      } else {
+        sources += [
+            "${efr32_sdk_root}/platform/emlib/src/em_usart.c",
+            "${efr32_sdk_root}/hardware/driver/memlcd/src/memlcd_usart/sl_memlcd_spi.c",
+        ]
+      }
+
 
       if (defined(invoker.use_external_flash) && use_external_flash) {
         sources += [ "${efr32_sdk_root}/hardware/driver/mx25_flash_shutdown/src/sl_mx25_flash_shutdown_usart/sl_mx25_flash_shutdown.c" ]
