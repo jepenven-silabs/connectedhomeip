@@ -19,6 +19,9 @@
 #include <string.h>
 #include <task.h>
 
+#include "rail_types.h"
+#include "rail_assert_error_codes.h"
+
 #ifdef BRD4325A // For SiWx917 Platform only
 #include "core_cm4.h"
 #endif
@@ -507,4 +510,24 @@ extern "C" void vApplicationGetTimerTaskMemory(StaticTask_t ** ppxTimerTaskTCBBu
     configMINIMAL_STACK_SIZE is specified in words, not bytes. */
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
+
+extern "C" void RAILCb_AssertFailed(RAIL_Handle_t railHandle, uint32_t errorCode)
+{
+
+   static const char* railErrorMessages[] = RAIL_ASSERT_ERROR_MESSAGES;
+   const char *errorMessage = "Unknown";
+
+   // If this error code is within the range of known error messages then use
+   // the appropriate error message.
+   if (errorCode < (sizeof(railErrorMessages) / sizeof(char*))) {
+     errorMessage = railErrorMessages[errorCode];
+   }
+    SILABS_LOG("RAIL Assert : %s", errorMessage);
+    
+    while(1);
+    
+    
+} 
+
+
 #endif // HARD_FAULT_LOG_ENABLE && SILABS_LOG_ENABLED
