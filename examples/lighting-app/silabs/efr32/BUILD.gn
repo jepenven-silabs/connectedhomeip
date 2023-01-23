@@ -210,7 +210,7 @@ efr32_executable("lighting_app") {
 
   if (silabs_board == "BRD2704A")
   {
-    defines += ["SPARKFUN=1"]
+    defines += ["SL_STATUS_LED=0"]
   }
 
 

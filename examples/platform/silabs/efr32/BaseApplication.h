@@ -45,6 +45,10 @@
 #endif // QR_CODE_ENABLED
 #endif // DISPLAY_ENABLED
 
+#ifndef SL_STATUS_LED
+#define SL_STATUS_LED 1
+#endif
+
 /**********************************************************
  * Defines
  *********************************************************/

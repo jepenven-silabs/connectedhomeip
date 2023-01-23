@@ -25,7 +25,7 @@
 #include "AppEvent.h"
 #include "AppTask.h"
 
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
 #include "LEDWidget.h"
 #include "sl_simple_led_instances.h"
 #endif // ENABLE_WSTK_LEDS
@@ -74,7 +74,7 @@
 #define APP_EVENT_QUEUE_SIZE 10
 #define EXAMPLE_VENDOR_ID 0xcafe
 
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
 #define SYSTEM_STATE_LED &sl_led_led0
 #endif // ENABLE_WSTK_LEDS
 #ifdef SL_CATALOG_SIMPLE_BUTTON_PRESENT
@@ -96,7 +96,7 @@ TimerHandle_t sLightTimer;
 TaskHandle_t sAppTaskHandle;
 QueueHandle_t sAppEventQueue;
 
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
 LEDWidget sStatusLED;
 #endif // ENABLE_WSTK_LEDS
 
@@ -212,7 +212,7 @@ CHIP_ERROR BaseApplication::Init(Identify * identifyObj)
 
     SILABS_LOG("Current Software Version: %s", CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION_STRING);
 
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
     LEDWidget::InitGpio();
     sStatusLED.Init(SYSTEM_STATE_LED);
 #endif // ENABLE_WSTK_LEDS
@@ -273,7 +273,7 @@ void BaseApplication::FunctionEventHandler(AppEvent * aEvent)
 
         mFunction = kFunction_FactoryReset;
 
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
         // Turn off all LEDs before starting blink to make sure blink is
         // co-ordinated.
         sStatusLED.Set(false);
@@ -334,7 +334,7 @@ void BaseApplication::LightEventHandler()
     {
         if ((gIdentifyptr != nullptr) && (gIdentifyptr->mActive))
         {
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
             sStatusLED.Blink(250, 250);
 #endif // ENABLE_WSTK_LEDS
         }
@@ -342,19 +342,19 @@ void BaseApplication::LightEventHandler()
         {
             if (sIdentifyEffect == EMBER_ZCL_IDENTIFY_EFFECT_IDENTIFIER_BLINK)
             {
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
                 sStatusLED.Blink(50, 50);
 #endif // ENABLE_WSTK_LEDS
             }
             if (sIdentifyEffect == EMBER_ZCL_IDENTIFY_EFFECT_IDENTIFIER_BREATHE)
             {
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
                 sStatusLED.Blink(1000, 1000);
 #endif // ENABLE_WSTK_LEDS
             }
             if (sIdentifyEffect == EMBER_ZCL_IDENTIFY_EFFECT_IDENTIFIER_OKAY)
             {
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
                 sStatusLED.Blink(300, 700);
 #endif // ENABLE_WSTK_LEDS
             }
@@ -364,33 +364,33 @@ void BaseApplication::LightEventHandler()
         {
             if (sIsAttached)
             {
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
                 sStatusLED.Set(true);
 #endif // ENABLE_WSTK_LEDS
             }
             else
             {
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
                 sStatusLED.Blink(950, 50);
 #endif
             }
         }
         else if (sHaveBLEConnections)
         {
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
             sStatusLED.Blink(100, 100);
 #endif // ENABLE_WSTK_LEDS
         }
         else
         {
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
             sStatusLED.Blink(50, 950);
 #endif // ENABLE_WSTK_LEDS
         }
 #endif // CHIP_DEVICE_CONFIG_ENABLE_SED
     }
 
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
     sStatusLED.Animate();
 #endif // ENABLE_WSTK_LEDS
 }
@@ -501,7 +501,7 @@ void BaseApplication::StartStatusLEDTimer()
 
 void BaseApplication::StopStatusLEDTimer()
 {
-#if defined(ENABLE_WSTK_LEDS) && !defined(SPARKFUN)
+#if defined(ENABLE_WSTK_LEDS) && SL_STATUS_LED
     sStatusLED.Set(false);
 #endif // ENABLE_WSTK_LEDS
 

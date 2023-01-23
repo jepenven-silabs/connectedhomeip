@@ -44,8 +44,11 @@
 #include <platform/CHIPDeviceLayer.h>
 
 #ifdef ENABLE_WSTK_LEDS
-#define SYSTEM_STATE_LED &sl_led_led0
+#if SL_STATUS_LED
+#define LIGHT_LED &sl_led_led1
+#else 
 #define LIGHT_LED &sl_led_led0
+#endif
 #endif // ENABLE_WSTK_LEDS
 
 #ifdef SL_CATALOG_SIMPLE_BUTTON_PRESENT
