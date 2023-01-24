@@ -49,7 +49,7 @@ declare_args() {
 }
 
 # Explorer Kit and MGM240L do not have external flash
-if (silabs_board == "BRD2703A" || silabs_board == "BRD4319A") {
+if (silabs_board == "BRD2703A" || silabs_board == "BRD4318A" || silabs_board == "BRD4319A") {
   use_external_flash = false
 }
 
@@ -57,7 +57,7 @@ if (silabs_board == "BRD2703A" || silabs_board == "BRD4319A") {
 
 # Board does not support LEDs and Buttons at the same time
 if (silabs_board == "BRD4317A" || silabs_board == "BRD4316A" ||
-    silabs_board == "BRD4319A") {
+    silabs_board == "BRD4319A" || silabs_board == "BRD4318A") {
   use_wstk_leds = false
 }
 
@@ -206,7 +206,7 @@ template("efr32_sdk") {
       "MBEDTLS_THREADING_C=1",
       "MBEDTLS_THREADING_ALT=1",
       "SL_THREADING_ALT=1",
-      "SL_COMPONENT_CATALOG_PRESENT",
+      "SL_COMPONENT_CATALOG_PRESENT=1",
       "PLATFORM_HEADER=\"platform-header.h\"",
       "USE_NVM3=1",
 
@@ -224,7 +224,7 @@ template("efr32_sdk") {
       defines += [ "SL_SYSTEM_VIEW=1" ]
     }
 
-    if (silabs_board == "BRD2704A")
+    if (silabs_board == "BRD2704A" || silabs_board == "BRD4318A")
     {
       _include_dirs += [
         "${efr32_sdk_root}/platform/radio/rail_lib/plugin/fem_util/",
@@ -370,14 +370,26 @@ template("efr32_sdk") {
         "${sdk_support_root}/protocol/bluetooth/lib/EFR32MG24/GCC/libbluetooth.a",
         "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_module_efr32xg24_gcc_release.a",
         "${sdk_support_root}/platform/emdrv/nvm3/lib/libnvm3_CM33_gcc.a",
+        "${efr32_sdk_root}/protocol/openthread/libs/libsl_openthread_efr32mg2x_gcc.a",
       ]
 
       if (silabs_mcu == "MGM240PB32VNA") {
-        libs += [ "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pb32vna_gcc.a" ]
+        libs += [ "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pb32vna_gcc.a"]
+         defines += ["SL_RAIL_LIB_MULTIPROTOCOL_SUPPORT=1", 
+                    "RADIO_CONFIG_DMP_SUPPORT=1",]
       } else if (silabs_mcu == "MGM240PB22VNA") {
-        libs += [ "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pb22vna_gcc.a" ]
+        libs += [ "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240pb22vna_gcc.a"]
       } else if (silabs_mcu == "MGM240L022RNF") {
-        libs += [ "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240l022rnf_gcc.a" ]
+        libs += [ "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240l022rnf_gcc.a"]
+      } else if (silabs_mcu == "MGM240SD22VNA") {
+        libs += [ "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_config_mgm240sd22vna_gcc.a"]
+        defines += ["SL_RAIL_LIB_MULTIPROTOCOL_SUPPORT=1", 
+                    "RADIO_CONFIG_DMP_SUPPORT=1",
+                    "SLI_RADIOAES_REQUIRES_MASKING=1",
+                    "SL_RAIL_UTIL_PA_CONFIG_HEADER=<sl_rail_util_pa_config.h>",
+
+                    ]
+
       }
 
       defines += [
@@ -848,7 +860,7 @@ template("efr32_sdk") {
       sources += [ "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_dpll_s2.c" ]
     }
 
-    if (silabs_board == "BRD2704A")
+    if (silabs_board == "BRD2704A" || silabs_board == "BRD4318A")
     {
       sources += [ 
         "${efr32_sdk_root}/platform/radio/rail_lib/plugin/rail_util_rssi/sl_rail_util_rssi.c",

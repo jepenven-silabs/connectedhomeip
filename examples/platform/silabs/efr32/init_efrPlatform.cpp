@@ -68,7 +68,9 @@ void init_efrPlatform(void)
     sl_system_init();
 
 #if CHIP_ENABLE_OPENTHREAD
+#ifdef MGM24
     sl_openthread_init();
+#endif
     efr32RadioInit();
     efr32AlarmInit();
     efr32MiscInit();
