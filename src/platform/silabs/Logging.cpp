@@ -20,7 +20,10 @@
 #include <task.h>
 
 #include "rail_types.h"
+
+#ifdef RAIL_ASSERT_DEBUG_STRING
 #include "rail_assert_error_codes.h"
+#endif
 
 #ifdef BRD4325A // For SiWx917 Platform only
 #include "core_cm4.h"
@@ -513,16 +516,19 @@ extern "C" void vApplicationGetTimerTaskMemory(StaticTask_t ** ppxTimerTaskTCBBu
 
 extern "C" void RAILCb_AssertFailed(RAIL_Handle_t railHandle, uint32_t errorCode)
 {
-
+#ifdef RAIL_ASSERT_DEBUG_STRING
    static const char* railErrorMessages[] = RAIL_ASSERT_ERROR_MESSAGES;
    const char *errorMessage = "Unknown";
 
-   // If this error code is within the range of known error messages then use
-   // the appropriate error message.
+   If this error code is within the range of known error messages then use
+   the appropriate error message.
    if (errorCode < (sizeof(railErrorMessages) / sizeof(char*))) {
      errorMessage = railErrorMessages[errorCode];
    }
     SILABS_LOG("RAIL Assert : %s", errorMessage);
+#else
+    SILABS_LOG("RAIL Assert : %ld", errorCode);
+#endif
     
     while(1);
     
