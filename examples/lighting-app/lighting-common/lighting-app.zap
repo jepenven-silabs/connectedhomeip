@@ -1,5 +1,5 @@
 {
-  "featureLevel": 89,
+  "featureLevel": 90,
   "creator": "zap",
   "keyValuePairs": [
     {
@@ -4548,7 +4548,7 @@
           "mfgCode": null,
           "define": "SWITCH_CLUSTER",
           "side": "server",
-          "enabled": 1,
+          "enabled": 0,
           "attributes": [
             {
               "name": "FeatureMap",
@@ -8194,5 +8194,6 @@
       "endpointVersion": 1,
       "deviceIdentifier": 257
     }
-  ]
+  ],
+  "log": []
 }
