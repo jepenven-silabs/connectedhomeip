@@ -78,8 +78,8 @@ void UDPEndPointImplOT::handleUdpReceive(void * aContext, otMessage * aMessage, 
         return;
     }
 
-    pktInfo->SrcAddress  = IPAddress::FromOtAddr(aMessageInfo->mPeerAddr);
-    pktInfo->DestAddress = IPAddress::FromOtAddr(aMessageInfo->mSockAddr);
+    pktInfo->SrcAddress  = IPAddress::FromImplAddr(aMessageInfo->mPeerAddr);
+    pktInfo->DestAddress = IPAddress::FromImplAddr(aMessageInfo->mSockAddr);
     pktInfo->SrcPort     = aMessageInfo->mPeerPort;
     pktInfo->DestPort    = aMessageInfo->mSockPort;
 

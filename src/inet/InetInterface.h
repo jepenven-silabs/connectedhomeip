@@ -51,6 +51,7 @@ struct net_if_ipv6;
 
 #if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
 struct otIp6AddressInfo;
+struct otNetifAddress;
 #endif
 
 #include <stddef.h>

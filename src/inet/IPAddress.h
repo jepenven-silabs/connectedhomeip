@@ -41,39 +41,13 @@
 #include <inet/InetError.h>
 
 #include "inet/IANAConstants.h"
-
-#if CHIP_SYSTEM_CONFIG_USE_LWIP && !CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-#include <lwip/init.h>
-#include <lwip/ip_addr.h>
-#if INET_CONFIG_ENABLE_IPV4
-#include <lwip/ip4_addr.h>
-#endif // INET_CONFIG_ENABLE_IPV4
-#include <lwip/inet.h>
-#endif // CHIP_SYSTEM_CONFIG_USE_LWIP
-
-#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-#include <openthread/icmp6.h>
-#include <openthread/ip6.h>
-#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-
-#if CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
-#include <net/if.h>
-#include <netinet/in.h>
-#endif // CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
-
-#if CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS
-#include <sys/socket.h>
-#endif // CHIP_SYSTEM_CONFIG_USE_POSIX_SOCKETS
-
-#if CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS
-#include <zephyr/net/socket.h>
-#endif // CHIP_SYSTEM_CONFIG_USE_ZEPHYR_SOCKETS
-
-#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT && INET_CONFIG_ENABLE_IPV4
-#error Forbidden : native Open Thread implementation with IPV4 enabled
-#endif
-
 #include <inet/InetInterface.h>
+
+#ifdef INET_IP_ADDRESS_IMPL_CONFIG_FILE
+#include INET_IP_ADDRESS_IMPL_CONFIG_FILE
+#else // INET_IP_ADDRESS_IMPL_CONFIG_FILE
+#error "INET_IP_ADDRESS_IMPL_CONFIG_FILE not defined"
+#endif // INET_IP_ADDRESS_IMPL_CONFIG_FILE
 
 #define NL_INET_IPV6_ADDR_LEN_IN_BYTES (16)
 #define NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES (14)
@@ -149,7 +123,7 @@ union SockAddrWithoutStorage
  *  protocol addresses (independent of protocol version).
  *
  */
-class DLL_EXPORT IPAddress
+class IPAddress: public IPAddressImpl
 {
 public:
     /**
@@ -186,9 +160,11 @@ public:
 #endif // INET_CONFIG_ENABLE_IPV4
 #endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
 
-#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-    explicit IPAddress(const otIp6Address & ipv6Addr);
-#endif
+#if INET_CONFIG_ENABLE_IPV4
+    explicit IPAddress(const struct IPv4AddressType & ipv4Addr);
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    explicit IPAddress(const IPv6AddressType & ipv6Addr);
 
     /**
      * @brief   Opaque word array to contain IP addresses (independent of protocol version)
@@ -587,10 +563,14 @@ public:
 
 #endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_USE_NETWORK_FRAMEWORK
 
-#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-    otIp6Address ToIPv6() const;
-    static IPAddress FromOtAddr(const otIp6Address & address);
-#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
+    /**
+     * @brief Convert from the base Implementation 
+     *        Address to IPAddress type
+     * 
+     * @param address the address to convert
+     * @return IPAddress 
+     */
+    static IPAddress FromImplAddr(const IPv6AddressType & address);
 
     /**
      * @brief   Construct an IPv6 unique-local address (ULA) from its parts.
