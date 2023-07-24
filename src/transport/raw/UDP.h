@@ -34,10 +34,6 @@
 #include <lib/core/CHIPCore.h>
 #include <transport/raw/Base.h>
 
-#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-struct otInstance;
-#endif // CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-
 namespace chip {
 namespace Transport {
 
