@@ -86,10 +86,10 @@ public:
      *      either unspecified or not an IPv4 address.
      */
 
-    otIp6Address ToIPv6() const;
+    otIp6Address ToIPv6(const void * addr, const uint32_t size) const;
 
     protected:
-    static void ConvertIPv6(void * dest, uint32_t size, otIp6Address address);
+    static void ConvertIPv6(void * dest, const uint32_t size, const otIp6Address & address);
 
 
 };

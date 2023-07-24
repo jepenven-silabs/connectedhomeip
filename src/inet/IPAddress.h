@@ -573,6 +573,15 @@ public:
     static IPAddress FromImplAddr(const IPv6AddressType & address);
 
     /**
+     * @brief Convert from the base Implementation 
+     *        Address to IPAddress type
+     * 
+     * @param address the address to convert
+     * @return IPAddress 
+     */
+    IPv6AddressType ToIPv6(void) const;
+
+    /**
      * @brief   Construct an IPv6 unique-local address (ULA) from its parts.
      *
      * @details

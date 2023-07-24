@@ -59,7 +59,7 @@ bool IPAddress::operator!=(const IPAddress & other) const
 
 IPAddress::IPAddress(const IPv6AddressType & ipv6Addr)
 {
-    
+    IPAddressImpl::ConvertIPv6(Addr, sizeof(Addr), ipv6Addr);
 }
 
 
@@ -267,6 +267,11 @@ IPAddress IPAddress::FromImplAddr(const IPv6AddressType & address)
     IPAddress addr;
     IPAddressImpl::ConvertIPv6(addr.Addr, sizeof(addr.Addr), address);
     return addr;
+}
+
+IPv6AddressType IPAddress::ToIPv6(void) const
+{
+    return IPAddressImpl::ToIPv6(Addr, sizeof(Addr));
 }
 
 // Is address an IPv4 address encoded in IPv6 format?

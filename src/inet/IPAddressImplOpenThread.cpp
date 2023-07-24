@@ -27,35 +27,24 @@
  *
  */
 
-#ifndef __STDC_LIMIT_MACROS
-#define __STDC_LIMIT_MACROS
-#endif
-
 #include <inet/IPAddressImplOpenThread.h>
-
-#include <inet/InetError.h>
-#include <lib/core/CHIPEncoding.h>
-#include <lib/support/CodeUtils.h>
-
-#include "arpa-inet-compatibility.h"
-
 #include <stdint.h>
-#include <string.h>
+#include <cassert>
 
 namespace chip {
 namespace Inet {
 
-otIp6Address IPAddressImplOpenThread::ToIPv6() const
+otIp6Address IPAddressImplOpenThread::ToIPv6(const void * addr, const uint32_t size) const
 {
     otIp6Address otAddr;
-    static_assert(sizeof(otAddr.mFields.m32) == sizeof(Addr), "otIp6Address size mismatch");
-    memcpy(otAddr.mFields.m32, Addr, sizeof(otAddr.mFields.m32));
+    assert(sizeof(otAddr.mFields.m32) == size);
+    memcpy(otAddr.mFields.m32, addr, sizeof(otAddr.mFields.m32));
     return otAddr;
 }
 
-void IPAddressImplOpenThread::ConvertIPv6(void * dest, uint32_t  size, otIp6Address & address)
+void IPAddressImplOpenThread::ConvertIPv6(void * dest, const uint32_t  size, const otIp6Address & address)
 {
-    static_assert(sizeof(address.mFields.m32) == size, "otIp6Address size mismatch");
+    assert(sizeof(address.mFields.m32) == size);
     memcpy(dest, address.mFields.m32, size);
 }
 
