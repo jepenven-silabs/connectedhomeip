@@ -457,11 +457,15 @@ public:
      * @return IPAddress 
      */
     static IPAddress FromImplAddr(const IPv6AddressType & address);
-    
-    static CHIP_ERROR GetIPAddressFromGenAddr(const IPGenericAddress & sockaddr, IPAddress & outIPAddress);
-    static CHIP_ERROR GetIPAddressFromGenAddr(const sockaddr & sockaddr, void * outIPAddress)
+
+#if INET_CONFIG_ENABLE_IPV4
+    static IPAddress FromImplAddr(const IPv4AddressType & address);
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    static CHIP_ERROR GetIPAddressFromGenAddr(const IPGenericAddressWithoutStorage & addr, IPAddress & outIPAddress);
+    static CHIP_ERROR GetIPAddressFromGenAddr(const IPGenericAddress & addr, IPAddress & outIPAddress)
     {
-        return GetIPAddressFromGenAddr(reinterpret_cast<const SockAddrWithoutStorage &>(sockaddr), outIPAddress);
+        return GetIPAddressFromGenAddr(reinterpret_cast<const IPGenericAddressWithoutStorage &>(addr), outIPAddress);
     }
     /**
      * Extract the IP address as a Base Implementation structure.

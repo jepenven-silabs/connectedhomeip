@@ -240,13 +240,13 @@ CHIP_ERROR IPAddress::GetIPAddressFromGenAddr(const IPGenericAddressWithoutStora
 #if INET_CONFIG_ENABLE_IPV4
     if (IPAddressImpl::IsGenericIPv4(genAddr))
     {
-        outIPAddress = IPAddressImpl::FromImplAddr(GetIpv4Addr(genAddr));
+        outIPAddress = FromImplAddr(GetIpv4Addr(genAddr));
         return CHIP_NO_ERROR;
     }
 #endif // INET_CONFIG_ENABLE_IPV4
     if (IPAddressImpl::IsGenericIPv6(genAddr))
     {
-        outIPAddress = IPAddressImpl::FromImplAddr(IPAddressImpl::GetIpv6Addr(genAddr));
+        outIPAddress = FromImplAddr(IPAddressImpl::GetIpv6Addr(genAddr));
         return CHIP_NO_ERROR;
     }
     return INET_ERROR_WRONG_ADDRESS_TYPE;
