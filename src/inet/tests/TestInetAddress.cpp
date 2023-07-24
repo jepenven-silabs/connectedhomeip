@@ -1234,7 +1234,7 @@ void CheckFromSocket(nlTestSuite * inSuite, void * inContext)
             memset(&sock_v4, 0, sizeof(struct sockaddr_in));
             sock_v4.sin_family = AF_INET;
             memcpy(&sock_v4.sin_addr.s_addr, &addr[3], sizeof(struct in_addr));
-            test_addr_2 = IPAddress::FromSockAddr(sock_v4);
+            test_addr_2 = IPAddress::FromImplAddr(sock_v4);
             break;
 #endif // INET_CONFIG_ENABLE_IPV4
 
@@ -1242,14 +1242,14 @@ void CheckFromSocket(nlTestSuite * inSuite, void * inContext)
             memset(&sock_v6, 0, sizeof(struct sockaddr_in6));
             sock_v6.sin6_family = AF_INET6;
             memcpy(&sock_v6.sin6_addr.s6_addr, addr, sizeof(struct in6_addr));
-            test_addr_2 = IPAddress::FromSockAddr(sock_v6);
+            test_addr_2 = IPAddress::FromImplAddr(sock_v6);
             break;
 
         case IPAddressType::kAny:
             memset(&sock_v6, 0, sizeof(struct sockaddr_in6));
             sock_v6.sin6_family = 0;
             memcpy(&sock_v6.sin6_addr.s6_addr, addr, sizeof(struct in6_addr));
-            test_addr_2 = IPAddress::FromSockAddr(sock_v6);
+            test_addr_2 = IPAddress::FromImplAddr(sock_v6);
             break;
 
         default:
@@ -1758,18 +1758,18 @@ void CheckToLwIPAddr(nlTestSuite * inSuite, void * inContext)
         if (lCurrent->mAddr.mAddrType == IPAddressType::kIPv4)
         {
             ip_addr_copy_from_ip4(lwip_expected_addr, test_addr.ToIPv4());
-            lwip_check_addr = test_addr.ToLwIPAddr();
+            lwip_check_addr = test_addr.ToImplAddr();
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(lwip_expected_addr, lwip_check_addr));
 
-            err = test_addr.ToLwIPAddr(IPAddressType::kAny, lwip_check_addr);
+            err = test_addr.ToImplAddr(IPAddressType::kAny, lwip_check_addr);
             NL_TEST_ASSERT(inSuite, err == CHIP_NO_ERROR);
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(lwip_expected_addr, lwip_check_addr));
 
-            err = test_addr.ToLwIPAddr(IPAddressType::kIPv4, lwip_check_addr);
+            err = test_addr.ToImplAddr(IPAddressType::kIPv4, lwip_check_addr);
             NL_TEST_ASSERT(inSuite, err == CHIP_NO_ERROR);
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(lwip_expected_addr, lwip_check_addr));
 
-            err = test_addr.ToLwIPAddr(IPAddressType::kIPv6, lwip_check_addr);
+            err = test_addr.ToImplAddr(IPAddressType::kIPv6, lwip_check_addr);
             NL_TEST_ASSERT(inSuite, err == INET_ERROR_WRONG_ADDRESS_TYPE);
         }
         else
@@ -1777,37 +1777,37 @@ void CheckToLwIPAddr(nlTestSuite * inSuite, void * inContext)
             if (lCurrent->mAddr.mAddrType == IPAddressType::kIPv6)
         {
             ip_addr_copy_from_ip6(lwip_expected_addr, test_addr.ToIPv6());
-            lwip_check_addr = test_addr.ToLwIPAddr();
+            lwip_check_addr = test_addr.ToImplAddr();
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(lwip_expected_addr, lwip_check_addr));
 
-            err = test_addr.ToLwIPAddr(IPAddressType::kAny, lwip_check_addr);
+            err = test_addr.ToImplAddr(IPAddressType::kAny, lwip_check_addr);
             NL_TEST_ASSERT(inSuite, err == CHIP_NO_ERROR);
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(lwip_expected_addr, lwip_check_addr));
 
-            err = test_addr.ToLwIPAddr(IPAddressType::kIPv6, lwip_check_addr);
+            err = test_addr.ToImplAddr(IPAddressType::kIPv6, lwip_check_addr);
             NL_TEST_ASSERT(inSuite, err == CHIP_NO_ERROR);
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(lwip_expected_addr, lwip_check_addr));
 
 #if INET_CONFIG_ENABLE_IPV4
-            err = test_addr.ToLwIPAddr(IPAddressType::kIPv4, lwip_check_addr);
+            err = test_addr.ToImplAddr(IPAddressType::kIPv4, lwip_check_addr);
             NL_TEST_ASSERT(inSuite, err == INET_ERROR_WRONG_ADDRESS_TYPE);
 #endif // INET_CONFIG_ENABLE_IPV4
         }
         else if (lCurrent->mAddr.mAddrType == IPAddressType::kAny)
         {
-            lwip_check_addr = test_addr.ToLwIPAddr();
+            lwip_check_addr = test_addr.ToImplAddr();
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(*IP6_ADDR_ANY, lwip_check_addr));
 
-            err = test_addr.ToLwIPAddr(IPAddressType::kAny, lwip_check_addr);
+            err = test_addr.ToImplAddr(IPAddressType::kAny, lwip_check_addr);
             NL_TEST_ASSERT(inSuite, err == CHIP_NO_ERROR);
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(*IP6_ADDR_ANY, lwip_check_addr));
 
-            err = test_addr.ToLwIPAddr(IPAddressType::kIPv6, lwip_check_addr);
+            err = test_addr.ToImplAddr(IPAddressType::kIPv6, lwip_check_addr);
             NL_TEST_ASSERT(inSuite, err == CHIP_NO_ERROR);
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(*IP6_ADDR_ANY, lwip_check_addr));
 
 #if INET_CONFIG_ENABLE_IPV4
-            err = test_addr.ToLwIPAddr(IPAddressType::kIPv4, lwip_check_addr);
+            err = test_addr.ToImplAddr(IPAddressType::kIPv4, lwip_check_addr);
             NL_TEST_ASSERT(inSuite, err == CHIP_NO_ERROR);
             NL_TEST_ASSERT(inSuite, sameLwIPAddress(*IP4_ADDR_ANY, lwip_check_addr));
 #endif // INET_CONFIG_ENABLE_IPV4

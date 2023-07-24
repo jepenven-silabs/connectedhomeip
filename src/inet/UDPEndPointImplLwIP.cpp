@@ -77,7 +77,7 @@ CHIP_ERROR UDPEndPointImplLwIP::BindImpl(IPAddressType addressType, const IPAddr
     ip_addr_t ipAddr;
     if (res == CHIP_NO_ERROR)
     {
-        res = address.ToLwIPAddr(addressType, ipAddr);
+        res = address.ToImplAddr(addressType, ipAddr);
     }
 
     if (res == CHIP_NO_ERROR)
@@ -196,8 +196,8 @@ CHIP_ERROR UDPEndPointImplLwIP::SendMsgImpl(const IPPacketInfo * pktInfo, System
     const uint16_t & destPort  = pktInfo->DestPort;
     const InterfaceId & intfId = pktInfo->Interface;
 
-    ip_addr_t lwipSrcAddr  = srcAddr.ToLwIPAddr();
-    ip_addr_t lwipDestAddr = destAddr.ToLwIPAddr();
+    ip_addr_t lwipSrcAddr  = srcAddr.ToImplAddr();
+    ip_addr_t lwipDestAddr = destAddr.ToImplAddr();
 
     ip_addr_t boundAddr;
     ip_addr_copy(boundAddr, mUDP->local_ip);

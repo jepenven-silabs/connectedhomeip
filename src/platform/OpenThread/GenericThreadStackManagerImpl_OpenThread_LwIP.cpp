@@ -176,7 +176,7 @@ void GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::UpdateThreadInter
                 //   - global unicast addresses.
                 if (otAddr->mValid && !otAddr->mRloc)
                 {
-                    ip_addr_t lwipAddr = addr.ToLwIPAddr();
+                    ip_addr_t lwipAddr = addr.ToImplAddr();
                     s8_t addrIdx;
 
                     // Add the address to the LwIP netif.  If the address is a link-local, and the primary

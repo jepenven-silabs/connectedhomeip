@@ -666,7 +666,7 @@ bool InterfaceAddressIterator::Next()
 
 CHIP_ERROR InterfaceAddressIterator::GetAddress(IPAddress & outIPAddress)
 {
-    return HasCurrent() ? IPAddress::GetIPAddressFromSockAddr(*mCurAddr->ifa_addr, outIPAddress) : CHIP_ERROR_SENTINEL;
+    return HasCurrent() ? IPAddress::GetIPAddressFromGenAddr(*mCurAddr->ifa_addr, outIPAddress) : CHIP_ERROR_SENTINEL;
 }
 
 uint8_t InterfaceAddressIterator::GetPrefixLength()

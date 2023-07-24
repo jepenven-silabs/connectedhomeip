@@ -90,12 +90,16 @@ public:
 
     protected:
     static void ConvertIPv6(void * dest, const uint32_t size, const otIp6Address & address);
+    inline static bool IsGenericIPv6(const otIp6Address & addr) {return true; }
+    inline static otIp6Address GetIpv6Addr(const otIp6Address & addr) {return addr;}
 
 
 };
 
 using IPAddressImpl = IPAddressImplOpenThread;
 using IPv6AddressType = otIp6Address;
+using IPGenericAddress = otIp6Address;
+using IPGenericAddressWithoutStorage = otIp6Address;
 static_assert(std::is_trivial<IPAddressImpl>::value, "IPAddressImpl is not trivial");
 
 } // namespace Inet

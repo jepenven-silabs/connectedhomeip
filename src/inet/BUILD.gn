@@ -72,7 +72,7 @@ source_set("inet_config_header") {
 
 static_library("inet") {
   output_name = "libInetLayer"
-
+  print(chip_system_config_inet)
   sources = [
     "EndPointBasis.h",
     "EndPointState${chip_system_config_inet}.h",

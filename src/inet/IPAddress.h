@@ -84,37 +84,6 @@ enum class IPv6MulticastFlag : uint8_t
 };
 using IPv6MulticastFlags = BitFlags<IPv6MulticastFlag>;
 
-#if CHIP_SYSTEM_CONFIG_USE_SOCKETS
-/**
- * SockAddr should be used when calling any API that returns (by copying into
- * it) a sockaddr, because that will need enough storage that it can hold data
- * for any socket type.
- *
- * It can also be used when calling an API that accepts a sockaddr, to simplify
- * the type-punning needed.
- */
-union SockAddr
-{
-    sockaddr any;
-    sockaddr_in in;
-    sockaddr_in6 in6;
-    sockaddr_storage storage;
-};
-
-/**
- * SockAddrWithoutStorage can be used any time we want to do the sockaddr
- * type-punning but will not store the data ourselves (e.g. we're working with
- * an existing sockaddr pointer, and reintepret it as a
- * pointer-to-SockAddrWithoutStorage).
- */
-union SockAddrWithoutStorage
-{
-    sockaddr any;
-    sockaddr_in in;
-    sockaddr_in6 in6;
-};
-#endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS
-
 /**
  * @brief   Internet protocol address
  *
@@ -126,22 +95,6 @@ union SockAddrWithoutStorage
 class IPAddress: public IPAddressImpl
 {
 public:
-    /**
-     * Maximum length of the string representation of an IP address, including a terminating NUL.
-     */
-#if CHIP_SYSTEM_CONFIG_USE_LWIP && !CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-    static constexpr uint16_t kMaxStringLength = IP6ADDR_STRLEN_MAX;
-#endif // CHIP_SYSTEM_CONFIG_USE_LWIP
-#if CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
-    static constexpr uint16_t kMaxStringLength = INET6_ADDRSTRLEN;
-#endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
-
-#if CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-#ifndef INET6_ADDRSTRLEN
-#define INET6_ADDRSTRLEN OT_IP6_ADDRESS_STRING_SIZE
-#endif
-    static constexpr uint16_t kMaxStringLength = OT_IP6_ADDRESS_STRING_SIZE;
-#endif
 
     IPAddress() = default;
 
@@ -153,18 +106,13 @@ public:
 #endif // INET_CONFIG_ENABLE_IPV4
 #endif // CHIP_SYSTEM_CONFIG_USE_LWIP
 
-#if CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
-    explicit IPAddress(const struct in6_addr & ipv6Addr);
-#if INET_CONFIG_ENABLE_IPV4
-    explicit IPAddress(const struct in_addr & ipv4Addr);
-#endif // INET_CONFIG_ENABLE_IPV4
-#endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
-
-#if INET_CONFIG_ENABLE_IPV4
-    explicit IPAddress(const struct IPv4AddressType & ipv4Addr);
-#endif // INET_CONFIG_ENABLE_IPV4
-
     explicit IPAddress(const IPv6AddressType & ipv6Addr);
+
+#if INET_CONFIG_ENABLE_IPV4
+    explicit IPAddress(const IPv4AddressType & ipv4Addr);
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    
 
     /**
      * @brief   Opaque word array to contain IP addresses (independent of protocol version)
@@ -498,70 +446,8 @@ public:
      * @return  The encapsulated IPv4 address, or \c [::] if the address is
      *      either unspecified or not an IPv4 address.
      */
+    IPv6AddressType ToIPv6(void) const;
 
-#if CHIP_SYSTEM_CONFIG_USE_LWIP && !CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT
-
-    /**
-     * @fn      ToLwIPAddr() const
-     *
-     * @brief   Extract the IP address as a LwIP ip_addr_t structure.
-     *
-     * @details
-     *  Use <tt>ToLwIPAddr() const</tt> to extract the content as an IP address,
-     *  if possible.
-     *
-     * @return  An LwIP ip_addr_t structure corresponding to the IP address.
-     */
-    ip_addr_t ToLwIPAddr(void) const;
-
-    /**
-     * Extract the IP address as a LwIP ip_addr_t structure.
-     *
-     * If the IP address is Any, the result is IP6_ADDR_ANY unless the requested addressType is kIPv4.
-     * If the requested addressType is IPAddressType::kAny, extracts the IP address as an LwIP ip_addr_t structure.
-     * Otherwise, returns INET_ERROR_WRONG_ADDRESS_TYPE if the requested addressType does not match the IP address.
-     */
-    CHIP_ERROR ToLwIPAddr(IPAddressType addressType, ip_addr_t & outAddress) const;
-
-    /**
-     * @brief   Convert the INET layer address type to its underlying LwIP type.
-     *
-     * @details
-     *  Use <tt>ToLwIPAddrType(IPAddressType)</tt> to convert the IP address type
-     *  to its underlying LwIP address type code.
-     */
-    static lwip_ip_addr_type ToLwIPAddrType(IPAddressType);
-
-    ip6_addr_t ToIPv6(void) const;
-
-#if INET_CONFIG_ENABLE_IPV4
-    ip4_addr_t ToIPv4(void) const;
-#endif // INET_CONFIG_ENABLE_IPV4
-
-#endif // CHIP_SYSTEM_CONFIG_USE_LWIP
-
-#if CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK
-
-    struct in6_addr ToIPv6() const;
-
-#if INET_CONFIG_ENABLE_IPV4
-    struct in_addr ToIPv4() const;
-#endif // INET_CONFIG_ENABLE_IPV4
-
-    /**
-     * Get the IP address from a SockAddr.
-     */
-    static CHIP_ERROR GetIPAddressFromSockAddr(const SockAddrWithoutStorage & sockaddr, IPAddress & outIPAddress);
-    static CHIP_ERROR GetIPAddressFromSockAddr(const sockaddr & sockaddr, IPAddress & outIPAddress)
-    {
-        return GetIPAddressFromSockAddr(reinterpret_cast<const SockAddrWithoutStorage &>(sockaddr), outIPAddress);
-    }
-    static IPAddress FromSockAddr(const sockaddr_in6 & sockaddr) { return IPAddress(sockaddr.sin6_addr); }
-#if INET_CONFIG_ENABLE_IPV4
-    static IPAddress FromSockAddr(const sockaddr_in & sockaddr) { return IPAddress(sockaddr.sin_addr); }
-#endif // INET_CONFIG_ENABLE_IPV4
-
-#endif // CHIP_SYSTEM_CONFIG_USE_SOCKETS || CHIP_SYSTEM_USE_NETWORK_FRAMEWORK
 
     /**
      * @brief Convert from the base Implementation 
@@ -571,15 +457,20 @@ public:
      * @return IPAddress 
      */
     static IPAddress FromImplAddr(const IPv6AddressType & address);
-
+    
+    static CHIP_ERROR GetIPAddressFromGenAddr(const IPGenericAddress & sockaddr, IPAddress & outIPAddress);
+    static CHIP_ERROR GetIPAddressFromGenAddr(const sockaddr & sockaddr, void * outIPAddress)
+    {
+        return GetIPAddressFromGenAddr(reinterpret_cast<const SockAddrWithoutStorage &>(sockaddr), outIPAddress);
+    }
     /**
-     * @brief Convert from the base Implementation 
-     *        Address to IPAddress type
-     * 
-     * @param address the address to convert
-     * @return IPAddress 
+     * Extract the IP address as a Base Implementation structure.
+     *
+     * If the IP address is Any, the result is IP6_ADDR_ANY unless the requested addressType is kIPv4.
+     * If the requested addressType is IPAddressType::kAny, extracts the IP address as an LwIP ip_addr_t structure.
+     * Otherwise, returns INET_ERROR_WRONG_ADDRESS_TYPE if the requested addressType does not match the IP address.
      */
-    IPv6AddressType ToIPv6(void) const;
+    CHIP_ERROR ToImplAddr(IPAddressType addressType, IPAddressType & outAddress) const;
 
     /**
      * @brief   Construct an IPv6 unique-local address (ULA) from its parts.

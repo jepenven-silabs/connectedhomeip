@@ -564,7 +564,7 @@ CHIP_ERROR ResolveContext::OnNewAddress(uint32_t interfaceId, const struct socka
     }
 
     chip::Inet::IPAddress ip;
-    ReturnErrorOnFailure(chip::Inet::IPAddress::GetIPAddressFromSockAddr(*address, ip));
+    ReturnErrorOnFailure(chip::Inet::IPAddress::GetIPAddressFromGenAddr(*address, ip));
 
 #ifdef CHIP_PROGRESS_LOGGING
     char addrStr[INET6_ADDRSTRLEN];

@@ -25,6 +25,8 @@
 #include <inet/InetFaultInjection.h>
 #include <inet/arpa-inet-compatibility.h>
 
+#include <inet/IPAddress.h>
+
 #include <lib/support/CodeUtils.h>
 #include <lib/support/SafeInt.h>
 #include <lib/support/logging/CHIPLogging.h>

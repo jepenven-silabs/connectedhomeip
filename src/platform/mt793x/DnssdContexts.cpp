@@ -373,7 +373,7 @@ CHIP_ERROR ResolveContext::OnNewAddress(uint32_t interfaceId, const struct socka
 {
     CHIP_ERROR err = CHIP_NO_ERROR;
     chip::Inet::IPAddress ip;
-    // ReturnErrorOnFailure(chip::Inet::IPAddress::GetIPAddressFromSockAddr(*address, ip));
+    // ReturnErrorOnFailure(chip::Inet::IPAddress::GetIPAddressFromGenAddr(*address, ip));
     if (address->sa_family == AF_INET6)
     {
         ip6_addr_t _ip6_adr;

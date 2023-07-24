@@ -24,6 +24,7 @@
 
 #include <inet/EndPointStateSockets.h>
 #include <inet/TCPEndPoint.h>
+#include <inet/IPAddress.h>
 
 namespace chip {
 namespace Inet {

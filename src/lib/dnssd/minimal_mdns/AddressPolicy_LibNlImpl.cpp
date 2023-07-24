@@ -347,7 +347,7 @@ CHIP_ERROR ValidIpAddressIterator::DecodeCurrentAddress(IPAddress & dest)
             return CHIP_ERROR_INVALID_ADDRESS;
         }
 
-        dest = IPAddress::FromSockAddr(sa);
+        dest = IPAddress::FromImplAddr(sa);
         return CHIP_NO_ERROR;
     }
     case AF_INET: {
@@ -367,7 +367,7 @@ CHIP_ERROR ValidIpAddressIterator::DecodeCurrentAddress(IPAddress & dest)
             return CHIP_ERROR_INVALID_ADDRESS;
         }
 
-        dest = IPAddress::FromSockAddr(sa);
+        dest = IPAddress::FromImplAddr(sa);
         return CHIP_NO_ERROR;
 #else
         return CHIP_ERROR_INVALID_ADDRESS;

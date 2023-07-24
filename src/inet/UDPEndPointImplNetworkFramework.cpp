@@ -259,8 +259,8 @@ void UDPEndPointImplNetworkFramework::GetPacketInfo(const nw_connection_t & aCon
     nw_endpoint_t src_endpoint  = nw_path_copy_effective_remote_endpoint(path);
 
     aPacketInfo.Clear();
-    aPacketInfo.SrcAddress  = IPAddress::FromSockAddr(*nw_endpoint_get_address(src_endpoint));
-    aPacketInfo.DestAddress = IPAddress::FromSockAddr(*nw_endpoint_get_address(dest_endpoint));
+    aPacketInfo.SrcAddress  = IPAddress::FromImplAddr(*nw_endpoint_get_address(src_endpoint));
+    aPacketInfo.DestAddress = IPAddress::FromImplAddr(*nw_endpoint_get_address(dest_endpoint));
     aPacketInfo.SrcPort     = nw_endpoint_get_port(src_endpoint);
     aPacketInfo.DestPort    = nw_endpoint_get_port(dest_endpoint);
 }
@@ -302,7 +302,7 @@ CHIP_ERROR UDPEndPointImplNetworkFramework::GetConnection(const IPPacketInfo * a
     {
         nw_path_t path                 = nw_connection_copy_current_path(mConnection);
         nw_endpoint_t remote_endpoint  = nw_path_copy_effective_remote_endpoint(path);
-        const IPAddress remote_address = IPAddress::FromSockAddr(*nw_endpoint_get_address(remote_endpoint));
+        const IPAddress remote_address = IPAddress::FromImplAddr(*nw_endpoint_get_address(remote_endpoint));
         const uint16_t remote_port     = nw_endpoint_get_port(remote_endpoint);
         const bool isDifferentEndPoint = aPktInfo->DestPort != remote_port || aPktInfo->DestAddress != remote_address;
         VerifyOrReturnError(isDifferentEndPoint, CHIP_NO_ERROR);

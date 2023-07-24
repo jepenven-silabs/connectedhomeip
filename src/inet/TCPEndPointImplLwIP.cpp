@@ -74,7 +74,7 @@ CHIP_ERROR TCPEndPointImplLwIP::BindImpl(IPAddressType addrType, const IPAddress
         {
             ip_set_option(mTCP, SOF_REUSEADDR);
         }
-        res = addr.ToLwIPAddr(addrType, ipAddr);
+        res = addr.ToImplAddr(addrType, ipAddr);
     }
 
     if (res == CHIP_NO_ERROR)
@@ -135,7 +135,7 @@ CHIP_ERROR TCPEndPointImplLwIP::ConnectImpl(const IPAddress & addr, uint16_t por
         tcp_arg(mTCP, this);
         tcp_err(mTCP, LwIPHandleError);
 
-        ip_addr_t lwipAddr = addr.ToLwIPAddr();
+        ip_addr_t lwipAddr = addr.ToImplAddr();
         res                = chip::System::MapErrorLwIP(tcp_connect(mTCP, &lwipAddr, port, LwIPHandleConnectComplete));
 
         // Ensure that TCP timers are started
