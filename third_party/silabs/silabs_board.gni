@@ -38,6 +38,8 @@ declare_args() {
 
   wifi_soc = false
 
+  enable_ble = true
+
   #Disable MQTT by default
   enable_dic = false
 
@@ -174,9 +176,10 @@ if (silabs_board == "BRD4304A") {
   show_qr_code = false
   disable_lcd = true
 } else if (silabs_board == "BRD4270B") {
-  silabs_family = "fg25"
+  silabs_family = "efr32fg25"
   silabs_mcu = "EFR32FG25B222F1920IM56"
 
+  enable_ble = false
   use_external_flash = false
 } else {
   print(
