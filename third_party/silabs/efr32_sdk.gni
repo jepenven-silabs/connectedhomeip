@@ -431,12 +431,16 @@ template("efr32_sdk") {
       ]
 
       libs += [
-        "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_multiprotocol_efr32xg25_gcc_release.a",
+        "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg25_gcc_release.a",
         "${sdk_support_root}/platform/emdrv/nvm3/lib/libnvm3_CM33_gcc.a",
       ]
 
       defines += [
         "EFR32FG25",
+        "SL_RAIL_LIB_MULTIPROTOCOL_SUPPORT=0",
+        "EFR32FG25B222F1920IM56=1",
+        "SL_DEVICE_INIT_AUTO_BAND_VALID=1",
+        "configNUM_SDK_THREAD_LOCAL_STORAGE_POINTERS=2",
       ]
     } else if (silabs_family == "efr32mg24") {
       _include_dirs += [
@@ -533,7 +537,7 @@ template("efr32_sdk") {
       "-Wno-error=array-bounds",
     ]
 
-    if (silabs_family == "efr32mg24" || silabs_family == "mgm24") {
+    if (silabs_family == "efr32mg24" || silabs_family == "efr32fg25" || silabs_family == "mgm24") {
       cflags += [ "-mcmse" ]
     }
 
