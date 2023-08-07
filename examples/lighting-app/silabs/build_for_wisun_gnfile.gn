@@ -24,5 +24,6 @@ default_args = {
   target_cpu = "arm"
   target_os = "freertos"
   chip_enable_wifi = false
+  chip_with_lwip = true
   import("//build_for_wisun_args.gni")
 }

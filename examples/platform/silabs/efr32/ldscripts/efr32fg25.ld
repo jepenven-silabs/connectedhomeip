@@ -26,29 +26,53 @@
  * 3. This notice may not be removed or altered from any source distribution.
  *
  ******************************************************************************/
+
  MEMORY
  {
-   FLASH   (rx)  : ORIGIN = 0x8000000, LENGTH = 0x1de000
+   FLASH   (rx)  : ORIGIN = 0x8006000, LENGTH = 0x1d8000
    RAM     (rwx) : ORIGIN = 0x20000000, LENGTH = 0x80000
  }
+
+/* Linker script to place sections and symbol values. Should be used together
+ * with other linker script that defines memory regions FLASH and RAM.
+ * It references following symbols, which must be defined in code:
+ *   Reset_Handler : Entry of reset handler
+ *
+ * It defines following symbols, which code can use without definition:
+ *   __exidx_start
+ *   __exidx_end
+ *   __copy_table_start__
+ *   __copy_table_end__
+ *   __zero_table_start__
+ *   __zero_table_end__
+ *   __etext
+ *   __data_start__
+ *   __preinit_array_start
+ *   __preinit_array_end
+ *   __init_array_start
+ *   __init_array_end
+ *   __fini_array_start
+ *   __fini_array_end
+ *   __data_end__
+ *   __bss_start__
+ *   __bss_end__
+ *   __end__
+ *   end
+ *   __HeapLimit
+ *   __StackLimit
+ *   __StackTop
+ *   __stack
+ *   __StackSeal      (only if ARMv8-M stack sealing is used)
+ */
 
 ENTRY(Reset_Handler)
 
 SECTIONS
 {
-
   .text :
   {
-    linker_vectors_begin = .;
     KEEP(*(.vectors))
-    linker_vectors_end = .;
-
-    __Vectors_End = .;
-    __Vectors_Size = __Vectors_End - __Vectors;
-
-    linker_code_begin = .;
-    *(SORT_BY_ALIGNMENT(.text*))
-    linker_code_end = .;
+    *(.text*)
 
     KEEP(*(.init))
     KEEP(*(.fini))
@@ -68,9 +92,9 @@ SECTIONS
     *(.dtors)
 
     *(.rodata*)
-    *(.eh_frame*)
-  } > FLASH
 
+    KEEP(*(.eh_frame*))
+  } > FLASH
   .ARM.extab :
   {
     *(.ARM.extab* .gnu.linkonce.armextab.*)
@@ -92,12 +116,6 @@ SECTIONS
     LONG (__data_start__)
     LONG ((__data_end__ - __data_start__) / 4)
 
-    /* Add each additional data section here */
-/*
-    LONG (__etext2)
-    LONG (__data2_start__)
-    LONG ((__data2_end__ - __data2_start__) / 4)
-*/
     __copy_table_end__ = .;
   } > FLASH
 
@@ -105,45 +123,19 @@ SECTIONS
   {
     . = ALIGN(4);
     __zero_table_start__ = .;
-    /* Add each additional bss section here */
-/*
-    LONG (__bss2_start__)
-    LONG ((__bss2_end__ - __bss2_start__) / 4)
-*/
     __zero_table_end__ = .;
+    __etext = ALIGN(4);
   } > FLASH
 
-  __etext = .;
-
-  /* Start placing output sections which are loaded into RAM */
-  . = ORIGIN(RAM);
-
-  .stack ALIGN(8) (NOLOAD):
+  .data : AT (__etext)
   {
-    __StackLimit = .;
-    KEEP(*(.stack*))
-    . = ALIGN(4);
-    __StackTop = .;
-    PROVIDE(__stack = __StackTop);
-  } > RAM
-
-
-  .noinit . (NOLOAD):
-  {
-    *(.noinit*);
-  } > RAM
-
-  .data . : AT (__etext)
-  {
-    . = ALIGN(4);
     __data_start__ = .;
     *(vtable)
-    *(SORT_BY_ALIGNMENT(.data*))
+    *(.data*)
     . = ALIGN (4);
-
-    PROVIDE(__ram_func_section_start = .);
+    PROVIDE (__ram_func_section_start = .);
     *(.ram)
-    PROVIDE(__ram_func_section_end = .);
+    PROVIDE (__ram_func_section_end = .);
 
     . = ALIGN(4);
     /* preinit data */
@@ -164,24 +156,24 @@ SECTIONS
     KEEP(*(SORT(.fini_array.*)))
     KEEP(*(.fini_array))
     PROVIDE_HIDDEN (__fini_array_end = .);
-    . = ALIGN(4);
-    *(SEGGER_RTT)
 
+    KEEP(*(.jcr*))
     . = ALIGN(4);
     /* All data end */
     __data_end__ = .;
 
   } > RAM
 
-  .bss . :
+  .bss :
   {
     . = ALIGN(4);
     __bss_start__ = .;
-    *(SORT_BY_ALIGNMENT(.bss*))
+    *(.bss)
+    *(.bss.*)
     *(COMMON)
     . = ALIGN(4);
     __bss_end__ = .;
-  } > RAM
+  } > RAM AT > RAM
 
   .heap (COPY):
   {
@@ -190,36 +182,41 @@ SECTIONS
     end = __end__;
     _end = __end__;
     KEEP(*(.heap*))
-    . = ORIGIN(RAM) + LENGTH(RAM);
     __HeapLimit = .;
   } > RAM
 
-  __heap_size = __HeapLimit - __HeapBase;
-  __ram_end__ = 0x20000000 + 0x80000;
-  __main_flash_end__ = 0x8000000 + 0x1de000;
+  __main_flash_end__ = ORIGIN(FLASH) + LENGTH(FLASH);
 
-   /* This is where we handle flash storage blocks. We use dummy sections for finding the configured
-   * block sizes and then "place" them at the end of flash when the size is known. */
-  .internal_storage (DSECT) : {
-    KEEP(*(.internal_storage*))
-  } > FLASH
+  /* .stack_dummy section doesn't contains any symbols. It is only
+   * used for linker to calculate size of stack sections, and assign
+   * values to stack symbols later */
+  .stack_dummy (COPY):
+  {
+    KEEP(*(.stack*))
+ /* KEEP(*(.stackseal*))*/
+  } > RAM
   
+  /* Set stack top to end of RAM, and stack limit move down by
+   * size of stack_dummy section */
+  __StackTop = ORIGIN(RAM) + LENGTH(RAM);
+  __StackLimit = __StackTop - SIZEOF(.stack_dummy);
+  PROVIDE(__stack = __StackTop);
 
   .nvm (DSECT) : {
     KEEP(*(.simee*))
   } > FLASH
 
-  linker_nvm_end = __main_flash_end__;
+  /* Last page of flash is reserved for the manufacturing token space */
+  linker_nvm_end = __main_flash_end__ - 8192;
   linker_nvm_begin = linker_nvm_end - SIZEOF(.nvm);
   linker_nvm_size = SIZEOF(.nvm);
-  linker_storage_end = linker_nvm_begin;
   __nvm3Base = linker_nvm_begin;
+  __attestation_credentials_base = linker_nvm_end;
 
-  linker_storage_begin = linker_storage_end - SIZEOF(.internal_storage);
-  linker_storage_size = SIZEOF(.internal_storage);
-  ASSERT((linker_storage_begin >= (__etext + SIZEOF(.data))), "FLASH memory overflowed !")
+  /* Check if data + heap + stack exceeds RAM limit */
+  /*ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")*/
+  ASSERT( (linker_nvm_begin + SIZEOF(.nvm)) <= __main_flash_end__, "NVM3 is excessing the flash size !")
 
-
-  app_flash_end = 0x8000000 + 0x1de000;
-  ASSERT( (linker_nvm_begin + SIZEOF(.nvm)) <= app_flash_end, "NVM3 is excessing the flash size !")
+  /* Check if FLASH usage exceeds FLASH size */
+  ASSERT( LENGTH(FLASH) >= (__etext + SIZEOF(.data)), "FLASH memory overflowed !")
 }

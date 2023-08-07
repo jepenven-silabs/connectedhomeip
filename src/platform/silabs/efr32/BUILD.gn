@@ -157,4 +157,16 @@ static_library("efr32") {
 
     public_configs = [ ":efr32-platform-wifi-config" ]
   }
+
+  if (silabs_board == "BRD4270B") {
+    sources += [
+      "ConnectivityManagerImpl.cpp",
+    ]
+
+    public_configs = [
+      "${chip_root}/src/lib/address_resolve:default_address_resolve_config",
+    ]
+  }
+
+
 }
