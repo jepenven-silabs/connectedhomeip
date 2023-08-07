@@ -293,7 +293,9 @@ void USART_IRQHandler(void)
 #ifdef ENABLE_CHIP_SHELL
     chip::NotifyShellProcessFromISR();
 #elif !defined(PW_RPC_ENABLED)
+#if CHIP_ENABLE_OPENTHREAD
     otSysEventSignalPending();
+#endif
 #endif
 
 #ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
@@ -335,7 +337,9 @@ static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, ui
 #ifdef ENABLE_CHIP_SHELL
     chip::NotifyShellProcessFromISR();
 #elif !defined(PW_RPC_ENABLED)
+#if CHIP_ENABLE_OPENTHREAD
     otSysEventSignalPending();
+#endif
 #endif
 }
 

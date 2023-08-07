@@ -23,7 +23,7 @@ import("${chip_root}/src/crypto/crypto.gni")
 # ARM architecture flags will be set based on silabs_family.
 arm_platform_config = "${efr32_sdk_build_root}/silabs_arm.gni"
 chip_device_platform = "efr32"
-chip_enable_chipoble = false
+chip_enable_ble = false
 
 mbedtls_target = "${efr32_sdk_build_root}:efr32_sdk"
 

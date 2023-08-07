@@ -121,6 +121,10 @@
 #define MBEDTLS_USE_PSA_CRYPTO
 #endif
 
+#ifdef BRD4270B
+#define MBEDTLS_NIST_KW_C
+#endif
+
 #define MBEDTLS_X509_CREATE_C
 #define MBEDTLS_X509_CSR_WRITE_C
 #define MBEDTLS_X509_CRL_PARSE_C

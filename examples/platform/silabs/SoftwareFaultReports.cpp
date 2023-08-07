@@ -229,7 +229,7 @@ extern "C" void vApplicationGetTimerTaskMemory(StaticTask_t ** ppxTimerTaskTCBBu
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
 
-#ifndef BRD4325A
+#if !defined(BRD4325A) && ! defined(BRD4270B)
 extern "C" void RAILCb_AssertFailed(RAIL_Handle_t railHandle, uint32_t errorCode)
 {
     char faultMessage[kMaxFaultStringLen] = { 0 };

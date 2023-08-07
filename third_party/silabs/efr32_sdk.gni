@@ -149,12 +149,6 @@ template("efr32_sdk") {
       "${efr32_sdk_root}/platform/service/system/inc",
       "${efr32_sdk_root}/platform/service/udelay/inc",
       "${efr32_sdk_root}/platform/service/legacy_hal/inc",
-      "${efr32_sdk_root}/platform/service/token_manager/config",
-      "${efr32_sdk_root}/platform/service/token_manager/inc",
-      "${efr32_sdk_root}/platform/service/token_manager/test",
-      "${efr32_sdk_root}/platform/service/token_manager/test/include",
-      "${efr32_sdk_root}/platform/service/token_manager/test/stack/config",
-      "${efr32_sdk_root}/platform/service/token_manager/test/stack/include",
       "${efr32_sdk_root}/platform/middleware/glib",
       "${efr32_sdk_root}/platform/middleware/glib/config",
       "${efr32_sdk_root}/platform/middleware/glib/glib",
@@ -374,7 +368,7 @@ template("efr32_sdk") {
       _include_dirs += [
         "${efr32_sdk_root}/platform/emdrv/uartdrv/inc",
         "${efr32_sdk_root}/platform/emdrv/uartdrv/config",
-        "${efr32_sdk_root}/hardware/driver/memlcd/inc/memlcd_usart",
+        "${efr32_sdk_root}/hardware/driver/memlcd/inc/memlcd_eusart",
       ]
     }
     if (invoker.enable_dic) {
@@ -424,15 +418,34 @@ template("efr32_sdk") {
       _include_dirs += [
         "${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32FG25/Include",
         "${efr32_sdk_root}/platform/radio/rail_lib/chip/efr32/efr32xg2x",
+        "${efr32_sdk_root}/util/third_party/mbedtls/include/mbedtls",
         "${efr32_sdk_root}/util/third_party/freertos/kernel/portable/GCC/ARM_CM33_NTZ/non_secure",
         "${efr32_sdk_root}/platform/radio/rail_lib/plugin/pa-conversions/efr32xg25",
         "${efr32_sdk_root}/platform/radio/rail_lib/plugin/pa-conversions/efr32xg25/config",
         "${efr32_sdk_root}/platform/service/device_init/config/s2/",
+        "${efr32_sdk_root}/platform/service/iostream/inc/",
+        "${efr32_sdk_root}/app/wisun/component/app_core/",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/",
+        "${efr32_sdk_root}/app/wisun/component/app_cli",
+        "${efr32_sdk_root}/app/wisun/component/app_core",
+        "${efr32_sdk_root}/app/wisun/component/app_project_info",
+        "${efr32_sdk_root}/app/wisun/component/app_setting",
+        "${efr32_sdk_root}/app/wisun/component/cli_util",
+        "${efr32_sdk_root}/app/wisun/component/event_manager",
+        "${efr32_sdk_root}/app/wisun/component/ns_list",
+        "${efr32_sdk_root}/app/wisun/component/ping",
+        "${efr32_sdk_root}/app/wisun/component/socket",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libip6string",
+        "${efr32_sdk_root}/app/wisun/component/trace_util",
+        "${efr32_sdk_root}/protocol/wisun/stack/inc/",
       ]
 
       libs += [
         "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg25_gcc_release.a",
         "${sdk_support_root}/platform/emdrv/nvm3/lib/libnvm3_CM33_gcc.a",
+        "${efr32_sdk_root}/protocol/wisun/stack/libwisun_router_core_efr32xg2x_freertos_gcc_debug.a",
       ]
 
       defines += [
@@ -530,6 +543,9 @@ template("efr32_sdk") {
       "-Wno-maybe-uninitialized",
       "-Wno-shadow",
 
+      # Wisun Stack error
+      "-Wno-format-nonliteral",
+
       # see https://github.com/project-chip/connectedhomeip/issues/26058
       "-Wno-error=array-parameter",
 
@@ -623,7 +639,6 @@ template("efr32_sdk") {
       "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_lfrco.c",
       "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_nvic.c",
       "${efr32_sdk_root}/platform/service/hfxo_manager/src/sl_hfxo_manager.c",
-      "${efr32_sdk_root}/platform/service/legacy_hal/src/token_legacy.c",
       "${efr32_sdk_root}/platform/service/mpu/src/sl_mpu.c",
       "${efr32_sdk_root}/platform/service/power_manager/src/sl_power_manager.c",
       "${efr32_sdk_root}/platform/service/power_manager/src/sl_power_manager_debug.c",
@@ -634,9 +649,6 @@ template("efr32_sdk") {
       "${efr32_sdk_root}/platform/service/sleeptimer/src/sl_sleeptimer_hal_sysrtc.c",
       "${efr32_sdk_root}/platform/service/system/src/sl_system_init.c",
       "${efr32_sdk_root}/platform/service/system/src/sl_system_kernel.c",
-      "${efr32_sdk_root}/platform/service/token_manager/src/sl_token_def.c",
-      "${efr32_sdk_root}/platform/service/token_manager/src/sl_token_manager.c",
-      "${efr32_sdk_root}/platform/service/token_manager/src/sl_token_manufacturing.c",
       "${efr32_sdk_root}/platform/service/udelay/src/sl_udelay.c",
       "${efr32_sdk_root}/platform/service/udelay/src/sl_udelay_armv6m_gcc.S",
       "${efr32_sdk_root}/util/plugin/security_manager/security_manager.c",
@@ -739,6 +751,24 @@ template("efr32_sdk") {
         "${silabs_gen_folder}/autogen/sl_bluetooth.c",
         "${silabs_gen_folder}/autogen/gatt_db.c",
       ]
+
+      if (chip_enable_ble_rs911x) {
+        sources += [
+          "${wifi_sapi_root}/sapi/bluetooth/rsi_ble_gap_apis.c",
+          "${wifi_sapi_root}/sapi/bluetooth/rsi_ble_gatt_apis.c",
+          "${wifi_sapi_root}/sapi/bluetooth/rsi_bt_common_apis.c",
+          "${wifi_sapi_root}/sapi/driver/rsi_bt_ble.c",
+        ]
+      } else {
+        sources += [
+          "${efr32_sdk_root}/protocol/bluetooth/src/sl_bt_mbedtls_context.c",
+          "${efr32_sdk_root}/protocol/bluetooth/src/sl_bt_rtos_adaptation.c",
+          "${efr32_sdk_root}/protocol/bluetooth/src/sl_bt_stack_init.c",
+          "${efr32_sdk_root}/protocol/bluetooth/src/sli_bt_advertiser_config.c",
+          "${efr32_sdk_root}/protocol/bluetooth/src/sli_bt_connection_config.c",
+        ]
+      }
+
     }
 
     if (enable_dic) {
@@ -758,23 +788,6 @@ template("efr32_sdk") {
         "${efr32_sdk_root}/platform/driver/button/src/sl_button.c",
         "${efr32_sdk_root}/platform/driver/button/src/sl_simple_button.c",
         "${silabs_gen_folder}/autogen/sl_simple_button_instances.c",
-      ]
-    }
-
-    if (chip_enable_ble_rs911x) {
-      sources += [
-        "${wifi_sapi_root}/sapi/bluetooth/rsi_ble_gap_apis.c",
-        "${wifi_sapi_root}/sapi/bluetooth/rsi_ble_gatt_apis.c",
-        "${wifi_sapi_root}/sapi/bluetooth/rsi_bt_common_apis.c",
-        "${wifi_sapi_root}/sapi/driver/rsi_bt_ble.c",
-      ]
-    } else {
-      sources += [
-        "${efr32_sdk_root}/protocol/bluetooth/src/sl_bt_mbedtls_context.c",
-        "${efr32_sdk_root}/protocol/bluetooth/src/sl_bt_rtos_adaptation.c",
-        "${efr32_sdk_root}/protocol/bluetooth/src/sl_bt_stack_init.c",
-        "${efr32_sdk_root}/protocol/bluetooth/src/sli_bt_advertiser_config.c",
-        "${efr32_sdk_root}/protocol/bluetooth/src/sli_bt_connection_config.c",
       ]
     }
 
@@ -816,11 +829,13 @@ template("efr32_sdk") {
         (defined(invoker.chip_enable_wifi) && invoker.chip_enable_wifi) ||
         show_qr_code || !disable_lcd || use_external_flash) {
       sources += [
-        "${efr32_sdk_root}/hardware/driver/memlcd/src/memlcd_usart/sl_memlcd_spi.c",
+        # "${efr32_sdk_root}/hardware/driver/memlcd/src/memlcd_usart/sl_memlcd_spi.c",
+        "${efr32_sdk_root}/hardware/driver/memlcd/src/memlcd_eusart/sl_memlcd_spi.c",
         "${efr32_sdk_root}/platform/emdrv/uartdrv/src/uartdrv.c",
         "${efr32_sdk_root}/platform/emlib/src/em_eusart.c",
-        "${efr32_sdk_root}/platform/emlib/src/em_leuart.c",
-        "${efr32_sdk_root}/platform/emlib/src/em_usart.c",
+        #  TODO add only whats need where
+        # "${efr32_sdk_root}/platform/emlib/src/em_leuart.c",
+        # "${efr32_sdk_root}/platform/emlib/src/em_usart.c",
         "${silabs_gen_folder}/autogen/sl_uartdrv_init.c",
       ]
 
@@ -991,8 +1006,11 @@ template("efr32_sdk") {
       sources += [
         "${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32FG25/Source/startup_efr32fg25.c",
         "${efr32_sdk_root}/platform/Device/SiliconLabs/EFR32FG25/Source/system_efr32fg25.c",
-        "${efr32_sdk_root}/platform/radio/rail_lib/plugin/fem_util/sl_fem_util.c",
-        "${efr32_sdk_root}/platform/radio/rail_lib/plugin/rail_util_rssi/sl_rail_util_rssi.c",
+        "${silabs_gen_folder}/autogen/rail_config.c",
+        "${efr32_sdk_root}/util/third_party/mbedtls/library/nist_kw.c",
+        "${efr32_sdk_root}/platform/radio/rail_lib/plugin/pa-conversions/pa_curves_efr32.c",
+        "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_usbpll_s2.c",
+        "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_rffpll_s2.c",
         "${efr32_sdk_root}/platform/security/sl_component/se_manager/src/sl_se_manager.c",
         "${efr32_sdk_root}/platform/security/sl_component/se_manager/src/sl_se_manager_attestation.c",
         "${efr32_sdk_root}/platform/security/sl_component/se_manager/src/sl_se_manager_cipher.c",
@@ -1020,13 +1038,52 @@ template("efr32_sdk") {
         "${efr32_sdk_root}/platform/security/sl_component/sl_psa_driver/src/sli_se_transparent_driver_mac.c",
         "${efr32_sdk_root}/platform/security/sl_component/sl_psa_driver/src/sli_se_transparent_key_derivation.c",
         "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_dcdc_s2.c",
-        "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_dpll_s2.c",
         "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_emu_s2.c",
-        "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_hfxo_mgm24.c",
+        "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_hfxo_s2.c",
         "${efr32_sdk_root}/platform/service/device_init/src/sl_device_init_lfxo_s2.c",
         "${efr32_sdk_root}/platform/service/hfxo_manager/src/sl_hfxo_manager_hal_s2.c",
         "${efr32_sdk_root}/util/third_party/freertos/kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c",
         "${efr32_sdk_root}/util/third_party/freertos/kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c",
+        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core.c",
+        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core.h",
+        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core_util.c",
+        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core_util.h",
+        "${efr32_sdk_root}/app/wisun/component/app_project_info/app_project_info.c",
+        "${efr32_sdk_root}/app/wisun/component/app_project_info/app_project_info.h",
+        "${efr32_sdk_root}/app/wisun/component/app_setting/sl_wisun_app_setting.c",
+        "${efr32_sdk_root}/app/wisun/component/app_setting/sl_wisun_app_setting.h",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_core.c",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_core.h",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_settings.c",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_settings.h",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_util.c",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_util.h",
+        "${efr32_sdk_root}/app/wisun/component/event_manager/sl_wisun_event_mgr.c",
+        "${efr32_sdk_root}/app/wisun/component/event_manager/sl_wisun_event_mgr.h",
+        "${efr32_sdk_root}/app/wisun/component/ns_list/ns_list.c",
+        "${efr32_sdk_root}/app/wisun/component/ns_list/ns_list.h",
+        "${efr32_sdk_root}/app/wisun/component/ping/sl_wisun_ping.c",
+        "${efr32_sdk_root}/app/wisun/component/ping/sl_wisun_ping.h",
+        # "${efr32_sdk_root}/app/wisun/component/ping/sl_wisun_ping_cli.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/external_socket.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/external_socket.h",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket.h",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket_event.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket_hnd.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket_hnd.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/common_functions.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/common_inlined_functions.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/ip6string.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/ns_types.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits/common_functions.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits/common_inlined_functions.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libip6string/ip6tos.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libip6string/stoip6.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/sl_wisun_ip6string.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/sl_wisun_trace_util.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/sl_wisun_trace_util.h",
+
       ]
     }
 

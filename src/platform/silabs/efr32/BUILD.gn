@@ -38,8 +38,6 @@ config("efr32-platform-wifi-config") {
 
 static_library("efr32") {
   sources = [
-    "${silabs_platform_dir}/BLEManagerImpl.h",
-    "${silabs_platform_dir}/BlePlatformConfig.h",
     "${silabs_platform_dir}/CHIPDevicePlatformConfig.h",
     "${silabs_platform_dir}/CHIPDevicePlatformEvent.h",
     "${silabs_platform_dir}/CHIPMem-Platform.cpp",
@@ -66,16 +64,25 @@ static_library("efr32") {
     "PlatformManagerImpl.cpp",
   ]
 
-  if (chip_enable_ble_rs911x) {
+  if (chip_enable_ble) {
     sources += [
-      "../rs911x/BLEManagerImpl.cpp",
-      "../rs911x/rsi_ble_config.h",
-      "../rs911x/wfx_sl_ble_init.c",
-      "../rs911x/wfx_sl_ble_init.h",
+      "${silabs_platform_dir}/BLEManagerImpl.h",
+      "${silabs_platform_dir}/BlePlatformConfig.h",
     ]
-  } else {
-    sources += [ "BLEManagerImpl.cpp" ]
+
+    if (chip_enable_ble_rs911x) {
+      sources += [
+        "../rs911x/BLEManagerImpl.cpp",
+        "../rs911x/rsi_ble_config.h",
+        "../rs911x/wfx_sl_ble_init.c",
+        "../rs911x/wfx_sl_ble_init.h",
+      ]
+    } else {
+      sources += [ "BLEManagerImpl.cpp" ]
+    }
+
   }
+ 
 
   if (chip_enable_ota_requestor) {
     sources += [
