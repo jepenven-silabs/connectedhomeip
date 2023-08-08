@@ -216,6 +216,8 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #else  // SL_WIFI
 #if SL_CONFIG_OPENTHREAD_LIB == 1
 #define configTOTAL_HEAP_SIZE ((size_t)(22 * 1024))
+#elif defined(BRD4270B)
+#define configTOTAL_HEAP_SIZE ((size_t)(70 * 1024))
 #else
 #define configTOTAL_HEAP_SIZE ((size_t)(20 * 1024))
 #endif // SL_CONFIG_OPENTHREAD_LIB
