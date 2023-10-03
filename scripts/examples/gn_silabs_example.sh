@@ -139,6 +139,8 @@ if [ "$#" == "0" ]; then
             Generate files with SLC for current board and options Requires an SLC-CLI installation or running in Docker.
         --slc_reuse_files
             Use generated files without running slc again.
+        --wisun
+            use Wi-Sun as a link layer
 
     "
 elif [ "$#" -lt "2" ]; then
@@ -250,6 +252,12 @@ else
             shift
             shift
             ;;
+
+        --wisun)
+            USE_WISUN=true
+            optArgs+="enable_wisun=true "
+            shift
+            ;;
         *"sl_matter_version_str="*)
             optArgs+="$1 "
             USE_GIT_SHA_FOR_VERSION=false
@@ -280,10 +288,10 @@ else
     fi
 
     # WiSUN exception. TODO find a more generic way
-    if [ "$SILABS_BOARD" == "BRD4270B" ]; then
-        echo "Compiling for 917 WiFi SOC"
-        USE_WISUN=true
-    fi
+    # if [ "$SILABS_BOARD" == "BRD4270B" ]; then
+    #     echo "Compiling for 917 WiFi SOC"
+    #     USE_WISUN=true
+    # fi
 
     if [ "$USE_GIT_SHA_FOR_VERSION" == true ]; then
         {

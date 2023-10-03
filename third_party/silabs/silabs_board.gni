@@ -38,6 +38,8 @@ declare_args() {
 
   wifi_soc = false
 
+  enable_wisun = false
+
   enable_ble = true
 
   #Disable MQTT by default
@@ -178,7 +180,7 @@ if (silabs_board == "BRD4304A") {
 } else if (silabs_board == "BRD4270B") {
   silabs_family = "efr32fg25"
   silabs_mcu = "EFR32FG25B222F1920IM56"
-
+  enable_wisun = true
   enable_ble = false
   use_external_flash = false
 } else {
@@ -189,3 +191,7 @@ if (silabs_board == "BRD4304A") {
 
 # qr code cannot be true if lcd is disabled
 assert(!(disable_lcd && show_qr_code))
+
+if (enable_wisun) {
+  assert((silabs_board == "BRD4270B" || silabs_board == "BRD4164A"))
+}

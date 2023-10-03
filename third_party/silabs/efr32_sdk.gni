@@ -368,7 +368,7 @@ template("efr32_sdk") {
       _include_dirs += [
         "${efr32_sdk_root}/platform/emdrv/uartdrv/inc",
         "${efr32_sdk_root}/platform/emdrv/uartdrv/config",
-        "${efr32_sdk_root}/hardware/driver/memlcd/inc/memlcd_eusart",
+        "${efr32_sdk_root}/hardware/driver/memlcd/inc/memlcd_usart",
       ]
     }
     if (invoker.enable_dic) {
@@ -424,28 +424,11 @@ template("efr32_sdk") {
         "${efr32_sdk_root}/platform/radio/rail_lib/plugin/pa-conversions/efr32xg25/config",
         "${efr32_sdk_root}/platform/service/device_init/config/s2/",
         "${efr32_sdk_root}/platform/service/iostream/inc/",
-        "${efr32_sdk_root}/app/wisun/component/app_core/",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/",
-        "${efr32_sdk_root}/app/wisun/component/app_cli",
-        "${efr32_sdk_root}/app/wisun/component/app_core",
-        "${efr32_sdk_root}/app/wisun/component/app_project_info",
-        "${efr32_sdk_root}/app/wisun/component/app_setting",
-        "${efr32_sdk_root}/app/wisun/component/cli_util",
-        "${efr32_sdk_root}/app/wisun/component/event_manager",
-        "${efr32_sdk_root}/app/wisun/component/ns_list",
-        "${efr32_sdk_root}/app/wisun/component/ping",
-        "${efr32_sdk_root}/app/wisun/component/socket",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libip6string",
-        "${efr32_sdk_root}/app/wisun/component/trace_util",
-        "${efr32_sdk_root}/protocol/wisun/stack/inc/",
       ]
 
       libs += [
         "${sdk_support_root}/platform/radio/rail_lib/autogen/librail_release/librail_efr32xg25_gcc_release.a",
         "${sdk_support_root}/platform/emdrv/nvm3/lib/libnvm3_CM33_gcc.a",
-        "${efr32_sdk_root}/protocol/wisun/stack/libwisun_router_core_efr32xg2x_freertos_gcc_debug.a",
       ]
 
       defines += [
@@ -533,6 +516,38 @@ template("efr32_sdk") {
         "${efr32_sdk_root}/platform/radio/wifi/wfx_fmac_driver/secure_link",
       ]
     }
+
+    # Wi-Sun support
+    if (enable_wisun) {
+      _include_dirs += [
+        "${efr32_sdk_root}/app/wisun/component/app_core/",
+        "${efr32_sdk_root}/app/wisun/component/socket/",
+        "${efr32_sdk_root}/app/wisun/component/socket/config/",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/",
+        "${efr32_sdk_root}/app/wisun/component/app_cli",
+        "${efr32_sdk_root}/app/wisun/component/app_core",
+        "${efr32_sdk_root}/app/wisun/component/app_project_info",
+        "${efr32_sdk_root}/app/wisun/component/app_setting",
+        "${efr32_sdk_root}/app/wisun/component/cli_util",
+        "${efr32_sdk_root}/app/wisun/component/event_manager",
+        "${efr32_sdk_root}/app/wisun/component/ns_list",
+        "${efr32_sdk_root}/app/wisun/component/ping",
+        "${efr32_sdk_root}/app/wisun/component/socket",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libip6string",
+        "${efr32_sdk_root}/app/wisun/component/trace_util",
+        "${efr32_sdk_root}/protocol/wisun/stack/inc/",
+      ]
+
+      libs += [
+        "${efr32_sdk_root}/protocol/wisun/stack/libwisun_router_core_efr32xg1x_freertos_gcc_debug.a",
+      ]
+
+      defines += ["WISUNLINK_LAYER"]
+
+    }
+
 
     cflags = []
     foreach(include_dir, _include_dirs) {
@@ -830,11 +845,11 @@ template("efr32_sdk") {
         show_qr_code || !disable_lcd || use_external_flash) {
       sources += [
         # "${efr32_sdk_root}/hardware/driver/memlcd/src/memlcd_usart/sl_memlcd_spi.c",
-        "${efr32_sdk_root}/hardware/driver/memlcd/src/memlcd_eusart/sl_memlcd_spi.c",
+        "${efr32_sdk_root}/hardware/driver/memlcd/src/memlcd_usart/sl_memlcd_spi.c",
         "${efr32_sdk_root}/platform/emdrv/uartdrv/src/uartdrv.c",
-        "${efr32_sdk_root}/platform/emlib/src/em_eusart.c",
+        "${efr32_sdk_root}/platform/emlib/src/em_usart.c",
         #  TODO add only whats need where
-        # "${efr32_sdk_root}/platform/emlib/src/em_leuart.c",
+        "${efr32_sdk_root}/platform/emlib/src/em_leuart.c",
         # "${efr32_sdk_root}/platform/emlib/src/em_usart.c",
         "${silabs_gen_folder}/autogen/sl_uartdrv_init.c",
       ]
@@ -869,6 +884,50 @@ template("efr32_sdk") {
         "${efr32_sdk_root}/platform/radio/wifi/wfx_fmac_driver/bus/sl_wfx_bus_spi.c",
         "${efr32_sdk_root}/platform/radio/wifi/wfx_fmac_driver/secure_link/sl_wfx_secure_link.c",
         "${efr32_sdk_root}/platform/radio/wifi/wfx_fmac_driver/sl_wfx.c",
+      ]
+    }
+
+    if(enable_wisun) {
+      sources += [
+        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core.c",
+        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core.h",
+        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core_util.c",
+        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core_util.h",
+        "${efr32_sdk_root}/app/wisun/component/app_project_info/app_project_info.c",
+        "${efr32_sdk_root}/app/wisun/component/app_project_info/app_project_info.h",
+        "${efr32_sdk_root}/app/wisun/component/app_setting/sl_wisun_app_setting.c",
+        "${efr32_sdk_root}/app/wisun/component/app_setting/sl_wisun_app_setting.h",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_core.c",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_core.h",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_settings.c",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_settings.h",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_util.c",
+        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_util.h",
+        "${efr32_sdk_root}/app/wisun/component/event_manager/sl_wisun_event_mgr.c",
+        "${efr32_sdk_root}/app/wisun/component/event_manager/sl_wisun_event_mgr.h",
+        "${efr32_sdk_root}/app/wisun/component/ns_list/ns_list.c",
+        "${efr32_sdk_root}/app/wisun/component/ns_list/ns_list.h",
+        "${efr32_sdk_root}/app/wisun/component/ping/sl_wisun_ping.c",
+        "${efr32_sdk_root}/app/wisun/component/ping/sl_wisun_ping.h",
+        # "${efr32_sdk_root}/app/wisun/component/ping/sl_wisun_ping_cli.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/external_socket.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/external_socket.h",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket.h",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket_event.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket_hnd.c",
+        "${efr32_sdk_root}/app/wisun/component/socket/socket_hnd.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/common_functions.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/common_inlined_functions.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/ip6string.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/ns_types.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits/common_functions.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits/common_inlined_functions.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libip6string/ip6tos.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libip6string/stoip6.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/sl_wisun_ip6string.h",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/sl_wisun_trace_util.c",
+        "${efr32_sdk_root}/app/wisun/component/trace_util/sl_wisun_trace_util.h",
       ]
     }
 
@@ -1044,46 +1103,6 @@ template("efr32_sdk") {
         "${efr32_sdk_root}/platform/service/hfxo_manager/src/sl_hfxo_manager_hal_s2.c",
         "${efr32_sdk_root}/util/third_party/freertos/kernel/portable/GCC/ARM_CM33_NTZ/non_secure/port.c",
         "${efr32_sdk_root}/util/third_party/freertos/kernel/portable/GCC/ARM_CM33_NTZ/non_secure/portasm.c",
-        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core.c",
-        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core.h",
-        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core_util.c",
-        "${efr32_sdk_root}/app/wisun/component/app_core/sl_wisun_app_core_util.h",
-        "${efr32_sdk_root}/app/wisun/component/app_project_info/app_project_info.c",
-        "${efr32_sdk_root}/app/wisun/component/app_project_info/app_project_info.h",
-        "${efr32_sdk_root}/app/wisun/component/app_setting/sl_wisun_app_setting.c",
-        "${efr32_sdk_root}/app/wisun/component/app_setting/sl_wisun_app_setting.h",
-        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_core.c",
-        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_core.h",
-        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_settings.c",
-        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_settings.h",
-        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_util.c",
-        # "${efr32_sdk_root}/app/wisun/component/cli_util/sl_wisun_cli_util.h",
-        "${efr32_sdk_root}/app/wisun/component/event_manager/sl_wisun_event_mgr.c",
-        "${efr32_sdk_root}/app/wisun/component/event_manager/sl_wisun_event_mgr.h",
-        "${efr32_sdk_root}/app/wisun/component/ns_list/ns_list.c",
-        "${efr32_sdk_root}/app/wisun/component/ns_list/ns_list.h",
-        "${efr32_sdk_root}/app/wisun/component/ping/sl_wisun_ping.c",
-        "${efr32_sdk_root}/app/wisun/component/ping/sl_wisun_ping.h",
-        # "${efr32_sdk_root}/app/wisun/component/ping/sl_wisun_ping_cli.c",
-        "${efr32_sdk_root}/app/wisun/component/socket/external_socket.c",
-        "${efr32_sdk_root}/app/wisun/component/socket/external_socket.h",
-        "${efr32_sdk_root}/app/wisun/component/socket/socket.c",
-        "${efr32_sdk_root}/app/wisun/component/socket/socket.h",
-        "${efr32_sdk_root}/app/wisun/component/socket/socket_event.c",
-        "${efr32_sdk_root}/app/wisun/component/socket/socket_hnd.c",
-        "${efr32_sdk_root}/app/wisun/component/socket/socket_hnd.h",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/common_functions.h",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/common_inlined_functions.h",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/ip6string.h",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/mbed-client-libservice/ns_types.h",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits/common_functions.c",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libBits/common_inlined_functions.c",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libip6string/ip6tos.c",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/nanostack/nanostack-libservice/source/libip6string/stoip6.c",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/sl_wisun_ip6string.h",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/sl_wisun_trace_util.c",
-        "${efr32_sdk_root}/app/wisun/component/trace_util/sl_wisun_trace_util.h",
-
       ]
     }
 

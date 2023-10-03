@@ -25,5 +25,6 @@ default_args = {
   target_os = "freertos"
   chip_enable_wifi = false
   chip_with_lwip = true
+  chip_system_config_use_open_thread_inet_endpoints = false
   import("//build_for_wisun_args.gni")
 }
