@@ -306,6 +306,11 @@ public:
 
     CHIP_ERROR ResumeSubscriptions();
 
+    /**
+     * Helper to find the state of a matching subscription
+     */
+    bool IsMatchingSubscriptionActive(const FabricIndex & aFabricIndex, const NodeId & aPeerNodeId);
+
 #if CONFIG_BUILD_FOR_HOST_UNIT_TEST
     //
     // Get direct access to the underlying read handler pool

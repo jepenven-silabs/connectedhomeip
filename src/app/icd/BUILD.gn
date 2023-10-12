@@ -34,6 +34,8 @@ source_set("notifier") {
 # All sources and configurations used by the ICDManager need to go in this source-set
 source_set("manager") {
   sources = [
+    "ICDCheckInSender.cpp",
+    "ICDCheckInSender.h",
     "ICDManager.cpp",
     "ICDManager.h",
   ]
@@ -43,6 +45,8 @@ source_set("manager") {
     ":notifier",
     ":observer",
     "${chip_root}/src/credentials:credentials",
+    "${chip_root}/src/lib/address_resolve:address_resolve",
+    "${chip_root}/src/protocols/secure_channel",
   ]
 }
 

@@ -278,6 +278,28 @@ CHIP_ERROR InteractionModelEngine::ShutdownSubscription(const ScopedNodeId & aPe
     return CHIP_ERROR_KEY_NOT_FOUND;
 }
 
+bool InteractionModelEngine::IsMatchingSubscriptionActive(const FabricIndex & aFabricIndex, const NodeId & aPeerNodeId)
+{
+    // This is assuming that ReadClient::Close will not affect any other
+    // ReadClients in the list.
+    for (auto * readClient = mpActiveReadClientList; readClient != nullptr;)
+    {
+        // Grab the next client now, because we might be about to delete readClient.
+        auto * nextClient = readClient->GetNextClient();
+        if (readClient->IsSubscriptionType())
+        {
+            bool fabricMatches = (aFabricIndex == readClient->GetFabricIndex());
+            bool nodeIdMatches = (aPeerNodeId == readClient->GetPeerNodeId());
+            if (fabricMatches && nodeIdMatches)
+            {
+                return readClient->IsSubscriptionActive();
+            }
+        }
+        readClient = nextClient;
+    }
+    return false;
+}
+
 void InteractionModelEngine::ShutdownSubscriptions(FabricIndex aFabricIndex, NodeId aPeerNodeId)
 {
     assertChipStackLockedByCurrentThread();

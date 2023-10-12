@@ -26,7 +26,10 @@
 #include <platform/ConnectivityManager.h>
 #include <platform/LockTracker.h>
 #include <platform/internal/CHIPDeviceLayerInternal.h>
+#include <protocols/secure_channel/CheckinMessage.h>
 #include <stdlib.h>
+
+#include <app/InteractionModelEngine.h>
 
 #ifndef ICD_ENFORCE_SIT_SLOW_POLL_LIMIT
 // Set to 1 to enforce SIT Slow Polling Max value to 15seconds (spec 9.16.1.5)
@@ -43,6 +46,9 @@ using namespace chip::app::Clusters::IcdManagement;
 uint8_t ICDManager::OpenExchangeContextCount = 0;
 static_assert(UINT8_MAX >= CHIP_CONFIG_MAX_EXCHANGE_CONTEXTS,
               "ICDManager::OpenExchangeContextCount cannot hold count for the max exchange count");
+
+using namespace chip::Protocols;
+using namespace chip::Protocols::SecureChannel;
 
 void ICDManager::Init(PersistentStorageDelegate * storage, FabricTable * fabricTable, ICDStateObserver * stateObserver,
                       Crypto::SymmetricKeystore * symmetricKeystore)
@@ -86,10 +92,49 @@ bool ICDManager::SupportsCheckInProtocol()
     bool success        = false;
     uint32_t featureMap = 0;
     // Can't use attribute accessors/Attributes::FeatureMap::Get in unit tests
-#ifndef CONFIG_BUILD_FOR_HOST_UNIT_TEST
+#if !CONFIG_BUILD_FOR_HOST_UNIT_TEST
     success = (Attributes::FeatureMap::Get(kRootEndpointId, &featureMap) == EMBER_ZCL_STATUS_SUCCESS);
 #endif
     return success ? ((featureMap & to_underlying(Feature::kCheckInProtocolSupport)) != 0) : false;
+}
+
+void ICDManager::SendCheckInMsgs()
+{
+    VerifyOrDie(mStorage != nullptr);
+    VerifyOrDie(mFabricTable != nullptr);
+    for (const auto & fabricInfo : *mFabricTable)
+    {
+        uint16_t supported_clients = ICDManagementServer::GetInstance().GetClientsSupportedPerFabric();
+        // TODO retrieve Check-in counter
+        // SecureChannel::CounterType counter = GetCheckInCounter();
+
+        ChipLogProgress(AppServer, "Max clients ICD per fabric %d", supported_clients);
+
+        ICDMonitoringTable table(*mStorage, fabricInfo.GetFabricIndex(), supported_clients /*Table entry limit*/,
+                                 mSymmetricKeystore);
+        if (!table.IsEmpty())
+        {
+            ChipLogProgress(AppServer, "Retrieving ICD Check-in Clients");
+            for (uint16_t i = 0; i < table.Limit(); i++)
+            {
+                ICDMonitoringEntry entry;
+                if (CHIP_NO_ERROR != table.Get(i, entry))
+                {
+                    // No more entries in the table
+                    break;
+                }
+
+                bool active =
+                    InteractionModelEngine::GetInstance()->IsMatchingSubscriptionActive(entry.fabricIndex, entry.checkInNodeID);
+
+                if (!active)
+                {
+                    // TODO Need to figure out how to queue multiple Check-In send
+                    // mCheckInSender.RequestCheckInSend(entry);
+                }
+            }
+        }
+    }
 }
 
 void ICDManager::UpdateICDMode()
@@ -156,7 +201,7 @@ void ICDManager::UpdateOperationState(OperationalState state)
         CHIP_ERROR err = DeviceLayer::ConnectivityMgr().SetPollingInterval(slowPollInterval);
         if (err != CHIP_NO_ERROR)
         {
-            ChipLogError(AppServer, "Failed to set Polling Interval: err %" CHIP_ERROR_FORMAT, err.Format());
+            ChipLogError(AppServer, "Failed to set Slow Polling Interval: err %" CHIP_ERROR_FORMAT, err.Format());
         }
     }
     else if (state == OperationalState::ActiveMode)
@@ -186,7 +231,13 @@ void ICDManager::UpdateOperationState(OperationalState state)
             CHIP_ERROR err = DeviceLayer::ConnectivityMgr().SetPollingInterval(GetFastPollingInterval());
             if (err != CHIP_NO_ERROR)
             {
-                ChipLogError(AppServer, "Failed to set Polling Interval: err %" CHIP_ERROR_FORMAT, err.Format());
+                ChipLogError(AppServer, "Failed to set Fast Polling Interval: err %" CHIP_ERROR_FORMAT, err.Format());
+            }
+
+            if (SupportsCheckInProtocol())
+            {
+                ChipLogProgress(AppServer, "Sending Check-in");
+                SendCheckInMsgs();
             }
 
             mStateObserver->OnEnterActiveMode();

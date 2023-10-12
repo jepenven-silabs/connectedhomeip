@@ -16,6 +16,7 @@
  */
 #pragma once
 
+#include <app/icd/ICDCheckInSender.h>
 #include <app/icd/ICDMonitoringTable.h>
 #include <app/icd/ICDNotifier.h>
 #include <app/icd/ICDStateObserver.h>
@@ -38,6 +39,7 @@ class TestICDManager;
 class ICDManager : public ICDListener
 {
 public:
+    friend class ICDCheckInSender;
     enum class OperationalState : uint8_t
     {
         IdleMode,
@@ -60,6 +62,7 @@ public:
     bool IsKeepActive() { return mKeepActiveFlags.HasAny(); }
     ICDMode GetICDMode() { return mICDMode; }
     OperationalState GetOperationalState() { return mOperationalState; }
+    void SendCheckInMsgs();
 
     static System::Clock::Milliseconds32 GetSITPollingThreshold() { return kSITPollingThreshold; }
     static System::Clock::Milliseconds32 GetSlowPollingInterval() { return kSlowPollingInterval; }
