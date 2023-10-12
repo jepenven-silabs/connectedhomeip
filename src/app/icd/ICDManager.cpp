@@ -105,8 +105,6 @@ void ICDManager::SendCheckInMsgs()
     for (const auto & fabricInfo : *mFabricTable)
     {
         uint16_t supported_clients = ICDManagementServer::GetInstance().GetClientsSupportedPerFabric();
-        // TODO retrieve Check-in counter
-        // SecureChannel::CounterType counter = GetCheckInCounter();
 
         ChipLogProgress(AppServer, "Max clients ICD per fabric %d", supported_clients);
 

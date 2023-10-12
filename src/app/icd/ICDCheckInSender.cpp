@@ -87,16 +87,16 @@ CHIP_ERROR ICDCheckInSender::SendCheckInMsg(ICDMonitoringEntry & entry, const Tr
     MutableByteSpan output{ b };
     CHIP_ERROR err;
 
-    // // Prepare Check-in payload
-    // err = CheckinMessage::GenerateCheckinMessagePayload(entry.key,
-    //                                                 counter,
-    //                                                 appData,
-    //                                                 output);
-    // if (err != CHIP_NO_ERROR)
-    // {
-    //     ChipLogError(AppServer, "Failed to prepare Check-In Payload for node %llu", entry.checkInNodeID);
-    //     return err;
-    // }
+    // TODO retrieve Check-in counter
+    CounterType counter = 0;
+
+    // Prepare Check-in payload
+    err = CheckinMessage::GenerateCheckinMessagePayload(entry.key, counter, ByteSpan(), output);
+    if (err != CHIP_NO_ERROR)
+    {
+        ChipLogError(AppServer, "Failed to prepare Check-In Payload");
+        return err;
+    }
 
     Messaging::ExchangeContext * exchangeContext = InteractionModelEngine::GetInstance()->GetExchangeManager()->NewContext(
         InteractionModelEngine::GetInstance()
