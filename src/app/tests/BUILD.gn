@@ -138,6 +138,7 @@ chip_test_suite_using_nltest("tests") {
     "TestEventPathParams.cpp",
     "TestExtensionFieldSets.cpp",
     "TestFabricScopedEventLogging.cpp",
+    "TestICDCheckInSender.cpp",
     "TestICDManager.cpp",
     "TestICDMonitoringTable.cpp",
     "TestInteractionModelEngine.cpp",
