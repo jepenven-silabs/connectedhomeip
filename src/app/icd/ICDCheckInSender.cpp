@@ -29,6 +29,21 @@ namespace app {
 
 using namespace Protocols::SecureChannel;
 
+ICDCheckInSender::ICDCheckInSender(PersistentStorageDelegate * storage, FabricTable * fabricTable,
+                            Crypto::SymmetricKeystore * symmetricKeyStore, ReleaseCb cb)
+{
+    VerifyOrDie(storage != nullptr);
+    VerifyOrDie(fabricTable != nullptr);
+    VerifyOrDie(symmetricKeyStore != nullptr);    
+
+    mStorage           = storage;
+    mFabricTable       = fabricTable;
+    mSymmetricKeystore = symmetricKeyStore;
+    mReleaseCb        = cb;
+
+    ICDCheckInSender();
+}
+
 ICDCheckInSender::ICDCheckInSender()
 {
     mAddressLookupHandle.SetListener(this);
@@ -40,7 +55,7 @@ ICDCheckInSender::~ICDCheckInSender()
 }
 
 void ICDCheckInSender::Init(PersistentStorageDelegate * storage, FabricTable * fabricTable,
-                            Crypto::SymmetricKeystore * symmetricKeyStore)
+                            Crypto::SymmetricKeystore * symmetricKeyStore, ReleaseCb cb)
 {
     VerifyOrDie(storage != nullptr);
     VerifyOrDie(fabricTable != nullptr);
@@ -49,18 +64,15 @@ void ICDCheckInSender::Init(PersistentStorageDelegate * storage, FabricTable * f
     mStorage           = storage;
     mFabricTable       = fabricTable;
     mSymmetricKeystore = symmetricKeyStore;
+    mReleaseCb        = cb;
 }
 
-CHIP_ERROR ICDCheckInSender::RequestCheckInSend(ICDMonitoringEntry & entry)
+void ICDCheckInSender::Release()
 {
-
-    if (mResolveInProgress)
+    if (mReleaseCb != nullptr)
     {
-        // TODO Queue next request ?
-        return CHIP_NO_ERROR;
+        mReleaseCb(this);
     }
-
-    return RequestResolve(entry.fabricIndex, entry.checkInNodeID);
 }
 
 void ICDCheckInSender::OnNodeAddressResolved(const PeerId & peerId, const AddressResolve::ResolveResult & result)
@@ -73,11 +85,15 @@ void ICDCheckInSender::OnNodeAddressResolved(const PeerId & peerId, const Addres
     table.Find(peerId.GetNodeId(), entry);
 
     SendCheckInMsg(entry, result.address);
+    Release();
 }
 
 void ICDCheckInSender::OnNodeAddressResolutionFailed(const PeerId & peerId, CHIP_ERROR reason)
 {
     mResolveInProgress = false;
+    ChipLogProgress(AppServer, "Node Address resolution failed for ICD Check-In with Node ID %lu", peerId.GetNodeId());
+
+    Release();
 }
 
 CHIP_ERROR ICDCheckInSender::SendCheckInMsg(ICDMonitoringEntry & entry, const Transport::PeerAddress & addr)
@@ -89,6 +105,8 @@ CHIP_ERROR ICDCheckInSender::SendCheckInMsg(ICDMonitoringEntry & entry, const Tr
 
     // TODO retrieve Check-in counter
     CounterType counter = 0;
+
+    ChipLogProgress(AppServer, "Address resolution completed Sending Check-In Messages");
 
     // Prepare Check-in payload
     err = CheckinMessage::GenerateCheckinMessagePayload(entry.key, counter, ByteSpan(), output);
@@ -117,15 +135,6 @@ CHIP_ERROR ICDCheckInSender::SendCheckInMsg(ICDMonitoringEntry & entry, const Tr
     return err;
 }
 
-CHIP_ERROR ICDCheckInSender::RequestResolve(FabricIndex fabricIndex, uint16_t icdTableIndex)
-{
-    ICDMonitoringEntry entry;
-    ICDMonitoringTable table(*mStorage, fabricIndex, CHIP_CONFIG_ICD_CLIENTS_SUPPORTED_PER_FABRIC, mSymmetricKeystore);
-    ReturnErrorOnFailure(table.Get(icdTableIndex, entry));
-
-    return RequestResolve(fabricIndex, entry.checkInNodeID);
-}
-
 CHIP_ERROR ICDCheckInSender::RequestResolve(FabricIndex fabricIndex, NodeId checkInNodeID)
 {
     VerifyOrReturnError(mFabricTable != nullptr, CHIP_ERROR_INTERNAL);
@@ -133,6 +142,7 @@ CHIP_ERROR ICDCheckInSender::RequestResolve(FabricIndex fabricIndex, NodeId chec
     PeerId peerId(fabricInfo->GetCompressedFabricId(), checkInNodeID);
 
     AddressResolve::NodeLookupRequest request(peerId);
+    mCurrentNodeId = checkInNodeID;
 
     CHIP_ERROR err = AddressResolve::Resolver::Instance().LookupNode(request, mAddressLookupHandle);
 

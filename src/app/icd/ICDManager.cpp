@@ -50,6 +50,8 @@ static_assert(UINT8_MAX >= CHIP_CONFIG_MAX_EXCHANGE_CONTEXTS,
 using namespace chip::Protocols;
 using namespace chip::Protocols::SecureChannel;
 
+ObjectPool<ICDCheckInSender, (CHIP_CONFIG_ICD_CLIENTS_SUPPORTED_PER_FABRIC * CHIP_CONFIG_MAX_FABRICS) > ICDManager::mICDSenderPool;
+
 void ICDManager::Init(PersistentStorageDelegate * storage, FabricTable * fabricTable, ICDStateObserver * stateObserver,
                       Crypto::SymmetricKeystore * symmetricKeystore)
 {
@@ -91,10 +93,8 @@ bool ICDManager::SupportsCheckInProtocol()
 {
     bool success        = false;
     uint32_t featureMap = 0;
-    // Can't use attribute accessors/Attributes::FeatureMap::Get in unit tests
-#if !CONFIG_BUILD_FOR_HOST_UNIT_TEST
     success = (Attributes::FeatureMap::Get(kRootEndpointId, &featureMap) == EMBER_ZCL_STATUS_SUCCESS);
-#endif
+
     return success ? ((featureMap & to_underlying(Feature::kCheckInProtocolSupport)) != 0) : false;
 }
 
@@ -106,16 +106,13 @@ void ICDManager::SendCheckInMsgs()
     {
         uint16_t supported_clients = ICDManagementServer::GetInstance().GetClientsSupportedPerFabric();
 
-        ChipLogProgress(AppServer, "Max clients ICD per fabric %d", supported_clients);
-
         ICDMonitoringTable table(*mStorage, fabricInfo.GetFabricIndex(), supported_clients /*Table entry limit*/,
                                  mSymmetricKeystore);
         if (!table.IsEmpty())
         {
-            ChipLogProgress(AppServer, "Retrieving ICD Check-in Clients");
             for (uint16_t i = 0; i < table.Limit(); i++)
             {
-                ICDMonitoringEntry entry;
+                ICDMonitoringEntry entry(mSymmetricKeystore);
                 if (CHIP_NO_ERROR != table.Get(i, entry))
                 {
                     // No more entries in the table
@@ -127,12 +124,45 @@ void ICDManager::SendCheckInMsgs()
 
                 if (!active)
                 {
-                    // TODO Need to figure out how to queue multiple Check-In send
-                    // mCheckInSender.RequestCheckInSend(entry);
+                    bool found = false;
+                    // Check if a sender was already allocated for this CheckIn Node ID
+                    mICDSenderPool.ForEachActiveObject([&,this](ICDCheckInSender * obj) -> Loop {
+                        if (obj->mCurrentNodeId == entry.checkInNodeID)
+                        {
+                            found = true;
+                            return Loop::Break;
+                        }
+                        return Loop::Continue;
+                    });
+
+                    if (found)
+                    {
+                        return;
+                    }
+
+                    ChipLogProgress(AppServer, "Allocating ICDCheckinSender for %lu", entry.checkInNodeID);
+
+                    ICDCheckInSender * sender = mICDSenderPool.CreateObject(mStorage, mFabricTable, mSymmetricKeystore, ReleaseICDSender);
+
+                    if (sender == nullptr)
+                    {
+                        ChipLogError(AppServer, "Failed to allocate ICDCheckinSender");
+                        return;
+                    }
+
+                    if(CHIP_NO_ERROR != sender->RequestResolve(entry.fabricIndex, entry.checkInNodeID))
+                    {
+                        ChipLogError(AppServer, "Failed to send ICD Check-In");
+                    }
                 }
             }
         }
     }
+}
+
+void ICDManager::ReleaseICDSender(ICDCheckInSender * objectToRelease)
+{
+    mICDSenderPool.ReleaseObject(objectToRelease);
 }
 
 void ICDManager::UpdateICDMode()
@@ -197,9 +227,9 @@ void ICDManager::UpdateOperationState(OperationalState state)
 #endif
 
         CHIP_ERROR err = DeviceLayer::ConnectivityMgr().SetPollingInterval(slowPollInterval);
-        if (err != CHIP_NO_ERROR)
+        if (err != CHIP_NO_ERROR && err != CHIP_ERROR_NOT_IMPLEMENTED)
         {
-            ChipLogError(AppServer, "Failed to set Slow Polling Interval: err %" CHIP_ERROR_FORMAT, err.Format());
+            ChipLogError(AppServer, "Failed to set Slow PollinFg Interval: err %" CHIP_ERROR_FORMAT, err.Format());
         }
     }
     else if (state == OperationalState::ActiveMode)
@@ -227,14 +257,13 @@ void ICDManager::UpdateOperationState(OperationalState state)
             DeviceLayer::SystemLayer().StartTimer(System::Clock::Timeout(activeModeJitterInterval), OnTransitionToIdle, this);
 
             CHIP_ERROR err = DeviceLayer::ConnectivityMgr().SetPollingInterval(GetFastPollingInterval());
-            if (err != CHIP_NO_ERROR)
+            if (err != CHIP_NO_ERROR && err != CHIP_ERROR_NOT_IMPLEMENTED)
             {
                 ChipLogError(AppServer, "Failed to set Fast Polling Interval: err %" CHIP_ERROR_FORMAT, err.Format());
             }
 
             if (SupportsCheckInProtocol())
             {
-                ChipLogProgress(AppServer, "Sending Check-in");
                 SendCheckInMsgs();
             }
 

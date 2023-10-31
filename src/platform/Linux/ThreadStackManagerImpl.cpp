@@ -522,7 +522,6 @@ CHIP_ERROR ThreadStackManagerImpl::_SetThreadDeviceType(ConnectivityManager::Thr
 CHIP_ERROR ThreadStackManagerImpl::_SetPollingInterval(System::Clock::Milliseconds32 pollingInterval)
 {
     (void) pollingInterval;
-    ChipLogError(DeviceLayer, "Set ICD Polling on linux");
     return CHIP_ERROR_NOT_IMPLEMENTED;
 }
 #endif /* CHIP_CONFIG_ENABLE_ICD_SERVER */

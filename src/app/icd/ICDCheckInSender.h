@@ -25,6 +25,9 @@ namespace app {
 
 // Forward declaration for test    
 class TestICDCheckInSender;
+class ICDCheckInSender;
+
+typedef void (*ReleaseCb)(ICDCheckInSender *);
 
 /**
  * @brief ICD Manager is responsible of processing the events and triggering the correct action for an ICD
@@ -32,21 +35,24 @@ class TestICDCheckInSender;
 class ICDCheckInSender : public AddressResolve::NodeListener
 {
 public:
+    ICDCheckInSender(PersistentStorageDelegate * storage, FabricTable * fabricTable, Crypto::SymmetricKeystore * symmetricKeyStore, ReleaseCb cb = nullptr);
     ICDCheckInSender();
     ~ICDCheckInSender();
 
-    void Init(PersistentStorageDelegate * storage, FabricTable * fabricTable, Crypto::SymmetricKeystore * symmetricKeyStore);
-
-    CHIP_ERROR RequestCheckInSend(ICDMonitoringEntry & entry);
+    void Init(PersistentStorageDelegate * storage, FabricTable * fabricTable, Crypto::SymmetricKeystore * symmetricKeyStore, ReleaseCb cb = nullptr);
+    CHIP_ERROR RequestResolve(FabricIndex fabricIndex, NodeId checkInNodeID);
 
     // AddressResolve::NodeListener - notifications when dnssd finds a node IP address
     void OnNodeAddressResolved(const PeerId & peerId, const AddressResolve::ResolveResult & result) override;
     void OnNodeAddressResolutionFailed(const PeerId & peerId, CHIP_ERROR reason) override;
 
+    NodeId mCurrentNodeId                          = kUndefinedNodeId;
+
 private:
     CHIP_ERROR SendCheckInMsg(ICDMonitoringEntry & entry, const Transport::PeerAddress & addr);
-    CHIP_ERROR RequestResolve(FabricIndex fabricIndex, uint16_t icdTableIndex);
-    CHIP_ERROR RequestResolve(FabricIndex fabricIndex, NodeId checkInNodeID);
+
+    inline void Release();
+
 
     // This is used when a node address is required.
     AddressResolve::NodeLookupHandle mAddressLookupHandle;
@@ -56,6 +62,8 @@ private:
     PersistentStorageDelegate * mStorage           = nullptr;
     FabricTable * mFabricTable                     = nullptr;
     Crypto::SymmetricKeystore * mSymmetricKeystore = nullptr;
+    ReleaseCb  mReleaseCb                          = nullptr;
+    
 };
 
 } // namespace app

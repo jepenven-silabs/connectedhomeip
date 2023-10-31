@@ -40,9 +40,20 @@ Status ICDManagementServer::RegisterClient(PersistentStorageDelegate & storage, 
     entry.checkInNodeID    = node_id;
     entry.monitoredSubject = monitored_subject;
     err                    = entry.SetKey(key);
+    if (err == CHIP_ERROR_INVALID_ARGUMENT) {
+        ChipLogProgress(Inet, "Key Size is wrong %ld", key.size());
+    } else if (err == CHIP_ERROR_INTERNAL) {
+        ChipLogProgress(Inet, "Symmetric key store is null");
+    }
+    
+
     VerifyOrReturnError(CHIP_ERROR_INVALID_ARGUMENT != err, InteractionModel::Status::ConstraintError);
     VerifyOrReturnError(CHIP_NO_ERROR == err, InteractionModel::Status::Failure);
     err = table.Set(entry.index, entry);
+
+    if (err != CHIP_NO_ERROR) {
+        ChipLogProgress(Inet, "Failed to set entry in table");
+    }
 
     // Delete key upon failure to prevent key storage leakage.
     if (err != CHIP_NO_ERROR)

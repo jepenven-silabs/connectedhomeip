@@ -79,6 +79,9 @@ protected:
 
     static void OnIdleModeDone(System::Layer * aLayer, void * appState);
     static void OnActiveModeDone(System::Layer * aLayer, void * appState);
+
+    static void ReleaseICDSender(ICDCheckInSender * objectToRelease);
+
     /**
      * @brief Callback function called shortly before the device enters idle mode to allow checks to be made. This is currently only
      * called once to prevent entering in a loop if some events re-trigger this check (for instance if a check for subscription
@@ -111,6 +114,8 @@ private:
     ICDStateObserver * mStateObserver              = nullptr;
     bool mTransitionToIdleCalled                   = false;
     Crypto::SymmetricKeystore * mSymmetricKeystore = nullptr;
+
+    static ObjectPool<ICDCheckInSender, (CHIP_CONFIG_ICD_CLIENTS_SUPPORTED_PER_FABRIC * CHIP_CONFIG_MAX_FABRICS) > mICDSenderPool;
 };
 
 } // namespace app
