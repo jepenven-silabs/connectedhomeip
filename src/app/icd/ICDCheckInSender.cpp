@@ -41,7 +41,8 @@ ICDCheckInSender::ICDCheckInSender(PersistentStorageDelegate * storage, FabricTa
     mSymmetricKeystore = symmetricKeyStore;
     mReleaseCb        = cb;
 
-    ICDCheckInSender();
+    mAddressLookupHandle.SetListener(this);
+
 }
 
 ICDCheckInSender::ICDCheckInSender()
@@ -78,6 +79,8 @@ void ICDCheckInSender::Release()
 void ICDCheckInSender::OnNodeAddressResolved(const PeerId & peerId, const AddressResolve::ResolveResult & result)
 {
     mResolveInProgress = false;
+
+    ChipLogProgress(AppServer, "Node Address resolution Succeed!!! Node ID %lu has address", peerId.GetNodeId());
     ICDMonitoringEntry entry(mSymmetricKeystore);
 
     const FabricInfo * f = mFabricTable->FindFabricWithCompressedId(peerId.GetCompressedFabricId());
@@ -85,7 +88,7 @@ void ICDCheckInSender::OnNodeAddressResolved(const PeerId & peerId, const Addres
     table.Find(peerId.GetNodeId(), entry);
 
     SendCheckInMsg(entry, result.address);
-    Release();
+    //Release();
 }
 
 void ICDCheckInSender::OnNodeAddressResolutionFailed(const PeerId & peerId, CHIP_ERROR reason)
@@ -93,7 +96,7 @@ void ICDCheckInSender::OnNodeAddressResolutionFailed(const PeerId & peerId, CHIP
     mResolveInProgress = false;
     ChipLogProgress(AppServer, "Node Address resolution failed for ICD Check-In with Node ID %lu", peerId.GetNodeId());
 
-    Release();
+    //Release();
 }
 
 CHIP_ERROR ICDCheckInSender::SendCheckInMsg(ICDMonitoringEntry & entry, const Transport::PeerAddress & addr)
@@ -116,6 +119,21 @@ CHIP_ERROR ICDCheckInSender::SendCheckInMsg(ICDMonitoringEntry & entry, const Tr
         return err;
     }
 
+    if (InteractionModelEngine::GetInstance() == nullptr) {
+        return CHIP_ERROR_INTERNAL;
+    }
+
+    if (InteractionModelEngine::GetInstance()->GetExchangeManager() == nullptr) {
+        return CHIP_ERROR_INTERNAL;
+    }
+
+    if (InteractionModelEngine::GetInstance()
+            ->GetExchangeManager()
+            ->GetSessionManager() == nullptr) {
+        return CHIP_ERROR_INTERNAL;
+    }
+
+
     Messaging::ExchangeContext * exchangeContext = InteractionModelEngine::GetInstance()->GetExchangeManager()->NewContext(
         InteractionModelEngine::GetInstance()
             ->GetExchangeManager()
@@ -130,7 +148,8 @@ CHIP_ERROR ICDCheckInSender::SendCheckInMsg(ICDMonitoringEntry & entry, const Tr
 
     err = exchangeContext->SendMessage(MsgType::ICD_CheckIn, std::move(buffer), Messaging::SendMessageFlags::kNoAutoRequestAck);
 
-    exchangeContext->Close();
+    // TBD why this is causing a seg fault
+    //exchangeContext->Close();
 
     return err;
 }
@@ -140,7 +159,7 @@ CHIP_ERROR ICDCheckInSender::RequestResolve(FabricIndex fabricIndex, NodeId chec
     VerifyOrReturnError(mFabricTable != nullptr, CHIP_ERROR_INTERNAL);
     const FabricInfo * fabricInfo = mFabricTable->FindFabricWithIndex(fabricIndex);
     PeerId peerId(fabricInfo->GetCompressedFabricId(), checkInNodeID);
-
+    ChipLogProgress(AppServer, "Going to lookUp Node ID");
     AddressResolve::NodeLookupRequest request(peerId);
     mCurrentNodeId = checkInNodeID;
 

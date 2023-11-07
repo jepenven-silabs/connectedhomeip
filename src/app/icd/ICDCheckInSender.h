@@ -47,6 +47,7 @@ public:
     void OnNodeAddressResolutionFailed(const PeerId & peerId, CHIP_ERROR reason) override;
 
     NodeId mCurrentNodeId                          = kUndefinedNodeId;
+    bool mResolveInProgress = false;
 
 private:
     CHIP_ERROR SendCheckInMsg(ICDMonitoringEntry & entry, const Transport::PeerAddress & addr);
@@ -57,7 +58,7 @@ private:
     // This is used when a node address is required.
     AddressResolve::NodeLookupHandle mAddressLookupHandle;
 
-    bool mResolveInProgress = false;
+    
 
     PersistentStorageDelegate * mStorage           = nullptr;
     FabricTable * mFabricTable                     = nullptr;

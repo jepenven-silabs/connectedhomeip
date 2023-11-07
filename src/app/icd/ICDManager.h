@@ -115,6 +115,14 @@ private:
     bool mTransitionToIdleCalled                   = false;
     Crypto::SymmetricKeystore * mSymmetricKeystore = nullptr;
 
+    typedef struct {
+        NodeId mCurrentNodeId  = kUndefinedNodeId;
+        ICDCheckInSender * sender =nullptr;
+    } AllocatedSender_t;
+    uint8_t mSenderCnt = 0;
+
+    AllocatedSender_t mSenderList[CHIP_CONFIG_ICD_CLIENTS_SUPPORTED_PER_FABRIC * CHIP_CONFIG_MAX_FABRICS];
+
     static ObjectPool<ICDCheckInSender, (CHIP_CONFIG_ICD_CLIENTS_SUPPORTED_PER_FABRIC * CHIP_CONFIG_MAX_FABRICS) > mICDSenderPool;
 };
 

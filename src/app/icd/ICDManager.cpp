@@ -121,38 +121,42 @@ void ICDManager::SendCheckInMsgs()
 
                 bool active =
                     InteractionModelEngine::GetInstance()->IsMatchingSubscriptionActive(entry.fabricIndex, entry.checkInNodeID);
+                
 
                 if (!active)
                 {
-                    bool found = false;
-                    // Check if a sender was already allocated for this CheckIn Node ID
-                    mICDSenderPool.ForEachActiveObject([&,this](ICDCheckInSender * obj) -> Loop {
-                        if (obj->mCurrentNodeId == entry.checkInNodeID)
-                        {
-                            found = true;
-                            return Loop::Break;
-                        }
-                        return Loop::Continue;
-                    });
+                    ICDCheckInSender * sender = nullptr;    
 
-                    if (found)
+                    for(uint8_t j = 0; j < mSenderCnt;j++)
                     {
-                        return;
+                        if(mSenderList[j].mCurrentNodeId == entry.checkInNodeID) {
+                            sender = mSenderList[j].sender;
+                            break;
+                        }
                     }
 
-                    ChipLogProgress(AppServer, "Allocating ICDCheckinSender for %lu", entry.checkInNodeID);
-
-                    ICDCheckInSender * sender = mICDSenderPool.CreateObject(mStorage, mFabricTable, mSymmetricKeystore, ReleaseICDSender);
+                    if (sender == nullptr && mSenderCnt < CHIP_CONFIG_ICD_CLIENTS_SUPPORTED_PER_FABRIC * CHIP_CONFIG_MAX_FABRICS)
+                    {
+                        ChipLogProgress(AppServer, "Allocating ICDCheckinSender for %lu", entry.checkInNodeID);
+                        sender = mICDSenderPool.CreateObject(mStorage, mFabricTable, mSymmetricKeystore, ReleaseICDSender);    
+                        mSenderList[mSenderCnt].sender = sender;
+                        mSenderList[mSenderCnt++].mCurrentNodeId = entry.checkInNodeID;
+                    } else {
+                        if (sender->mResolveInProgress)
+                        {
+                            return;
+                        }
+                    }
 
                     if (sender == nullptr)
                     {
                         ChipLogError(AppServer, "Failed to allocate ICDCheckinSender");
                         return;
                     }
-
                     if(CHIP_NO_ERROR != sender->RequestResolve(entry.fabricIndex, entry.checkInNodeID))
                     {
                         ChipLogError(AppServer, "Failed to send ICD Check-In");
+                        // mICDSenderPool.ReleaseObject(sender);
                     }
                 }
             }
