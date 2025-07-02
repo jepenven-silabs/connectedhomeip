@@ -34,6 +34,8 @@
 #include <zephyr/net/net_stats.h>
 #include <zephyr/version.h>
 
+
+#ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
 extern "C" {
 #include <common/defs.h>
 #include <wpa_supplicant/config.h>
@@ -44,6 +46,8 @@ extern "C" {
 // It is defined in zephyr/subsys/net/ip/utils.c
 extern char * net_sprint_ll_addr_buf(const uint8_t * ll, uint8_t ll_len, char * buf, int buflen);
 }
+#endif // CONFIG_WIFI_NM_WPA_SUPPLICANT
+
 
 namespace chip {
 namespace DeviceLayer {
@@ -157,8 +161,10 @@ const Map<uint32_t, WiFiManager::NetEventHandler, 5> WiFiManager::sEventHandlerM
     { NET_EVENT_WIFI_SCAN_RESULT, WiFiManager::ScanResultHandler },
     { NET_EVENT_WIFI_SCAN_DONE, WiFiManager::ScanDoneHandler },
     { NET_EVENT_WIFI_CONNECT_RESULT, WiFiManager::ConnectHandler },
+#ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
     { NET_EVENT_WIFI_DISCONNECT_RESULT, WiFiManager::DisconnectHandler },
     { NET_EVENT_WIFI_DISCONNECT_COMPLETE, WiFiManager::DisconnectHandler },
+#endif // CONFIG_WIFI_NM_WPA_SUPPLICANT
 });
 
 void WiFiManager::WifiMgmtEventHandler(net_mgmt_event_callback * cb, uint32_t mgmtEvent, net_if * iface)
@@ -511,6 +517,7 @@ void WiFiManager::ConnectHandler(Platform::UniquePtr<uint8_t> data, size_t lengt
                 }
 
                 delegate->OnAssociationFailureDetected(associationFailureCause, reason);
+                ChipLogError(DeviceLayer, "WiFi connection failure. Cause: %d, reason: %d", associationFailureCause, reason);
             }
         }
         else // The connection has been established successfully.
@@ -565,8 +572,8 @@ void WiFiManager::DisconnectHandler(Platform::UniquePtr<uint8_t> data, size_t le
         Platform::UniquePtr<uint8_t> safePtr(capturedData);
         uint8_t * rawData          = safePtr.get();
         const wifi_status * status = reinterpret_cast<const wifi_status *>(rawData);
-        uint16_t reason;
-
+        uint16_t reason = 0;
+    #ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
         switch (status->disconn_reason)
         {
         case WIFI_REASON_DISCONN_UNSPECIFIED:
@@ -585,6 +592,7 @@ void WiFiManager::DisconnectHandler(Platform::UniquePtr<uint8_t> data, size_t le
             reason = WLAN_REASON_UNSPECIFIED;
             break;
         }
+    #endif
         Instance().SetLastDisconnectReason(reason);
 
         ChipLogProgress(DeviceLayer, "WiFi station disconnected");

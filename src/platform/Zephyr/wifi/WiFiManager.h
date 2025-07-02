@@ -31,10 +31,12 @@
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/wifi_mgmt.h>
 
+#ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
 extern "C" {
 #include <src/utils/common.h>
 #include <wpa_supplicant/wpa_supplicant_i.h>
 }
+#endif // CONFIG_WIFI_NM_WPA_SUPPLICANT
 
 struct net_if;
 struct wpa_ssid;
@@ -249,7 +251,7 @@ private:
     uint32_t mConnectionRecoveryCounter{ 0 };
     uint32_t mConnectionRecoveryTimeMs{ kConnectionRecoveryMinIntervalMs };
     bool mApplicationDisconnectRequested{ false };
-    uint16_t mLastDisconnectedReason = WLAN_REASON_UNSPECIFIED;
+    uint16_t mLastDisconnectedReason;
 
     static const Map<wifi_iface_state, StationStatus, 10> sStatusMap;
     static const Map<uint32_t, NetEventHandler, 5> sEventHandlerMap;

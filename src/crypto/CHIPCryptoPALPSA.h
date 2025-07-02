@@ -26,11 +26,13 @@
 
 #pragma once
 
+#include <psa/crypto.h>
+
 #include "CHIPCryptoPAL.h"
 #include "PSAKeyAllocator.h"
 #include <lib/support/SafePointerCast.h>
 
-#include <psa/crypto.h>
+
 
 namespace chip {
 namespace Crypto {
