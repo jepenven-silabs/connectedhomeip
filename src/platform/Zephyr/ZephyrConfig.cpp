@@ -158,8 +158,9 @@ exit:
 
 CHIP_ERROR ZephyrConfig::Init()
 {
-    if (settings_subsys_init() != 0)
-        return CHIP_ERROR_PERSISTED_STORAGE_FAILED;
+    int err = settings_subsys_init();
+    if ( err != 0)
+        return CHIP_ERROR(err);
 
     return CHIP_NO_ERROR;
 }
