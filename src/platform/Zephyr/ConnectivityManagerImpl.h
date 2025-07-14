@@ -85,7 +85,7 @@ private:
     CHIP_ERROR _Init(void);
     void _OnPlatformEvent(const ChipDeviceEvent * event);
 
-    #if CHIP_DEVICE_CONFIG_ENABLE_WIFI
+#if CHIP_DEVICE_CONFIG_ENABLE_WIFI
     using Flags = GenericConnectivityManagerImpl_WiFi::ConnectivityFlags;
     // ===== Members that implement the ConnectivityManager abstract interface.
 
@@ -146,7 +146,6 @@ private:
 #endif // CHIP_DEVICE_CONFIG_ENABLE_WIFI_AP
 
 #endif // CHIP_DEVICE_CONFIG_ENABLE_WIFI
-
 
     // ===== Members for internal use by the following friends.
 

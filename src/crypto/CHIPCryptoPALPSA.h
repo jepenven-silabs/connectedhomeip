@@ -32,8 +32,6 @@
 #include "PSAKeyAllocator.h"
 #include <lib/support/SafePointerCast.h>
 
-
-
 namespace chip {
 namespace Crypto {
 

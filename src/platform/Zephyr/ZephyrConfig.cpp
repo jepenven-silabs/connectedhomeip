@@ -159,7 +159,7 @@ exit:
 CHIP_ERROR ZephyrConfig::Init()
 {
     int err = settings_subsys_init();
-    if ( err != 0)
+    if (err != 0)
         return CHIP_ERROR(err);
 
     return CHIP_NO_ERROR;

@@ -34,7 +34,6 @@
 #include <zephyr/net/net_stats.h>
 #include <zephyr/version.h>
 
-
 #ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
 extern "C" {
 #include <common/defs.h>
@@ -47,7 +46,6 @@ extern "C" {
 extern char * net_sprint_ll_addr_buf(const uint8_t * ll, uint8_t ll_len, char * buf, int buflen);
 }
 #endif // CONFIG_WIFI_NM_WPA_SUPPLICANT
-
 
 namespace chip {
 namespace DeviceLayer {
@@ -572,8 +570,8 @@ void WiFiManager::DisconnectHandler(Platform::UniquePtr<uint8_t> data, size_t le
         Platform::UniquePtr<uint8_t> safePtr(capturedData);
         uint8_t * rawData          = safePtr.get();
         const wifi_status * status = reinterpret_cast<const wifi_status *>(rawData);
-        uint16_t reason = 0;
-    #ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
+        uint16_t reason            = 0;
+#ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
         switch (status->disconn_reason)
         {
         case WIFI_REASON_DISCONN_UNSPECIFIED:
@@ -592,7 +590,7 @@ void WiFiManager::DisconnectHandler(Platform::UniquePtr<uint8_t> data, size_t le
             reason = WLAN_REASON_UNSPECIFIED;
             break;
         }
-    #endif
+#endif
         Instance().SetLastDisconnectReason(reason);
 
         ChipLogProgress(DeviceLayer, "WiFi station disconnected");

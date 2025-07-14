@@ -75,7 +75,8 @@ const bt_uuid_128 UUID128_CHIPoBLEChar_C3 =
 
 bt_uuid_16 UUID16_CHIPoBLEService = BT_UUID_INIT_16(0xFFF6);
 
-bt_gatt_ccc_managed_user_data CHIPoBLEChar_TX_CCC = BT_GATT_CCC_MANAGED_USER_DATA_INIT(nullptr,BLEManagerImpl::HandleTXCCCWrite,nullptr );
+bt_gatt_ccc_managed_user_data CHIPoBLEChar_TX_CCC =
+    BT_GATT_CCC_MANAGED_USER_DATA_INIT(nullptr, BLEManagerImpl::HandleTXCCCWrite, nullptr);
 
 // clang-format off
 
