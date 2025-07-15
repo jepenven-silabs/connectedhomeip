@@ -8,7 +8,13 @@ RUN set -x \
     && python3 -m venv venv \
     && . venv/bin/activate \
     && pip3 install west \
-    && west init -m https://github.com/SiliconLabsSoftware/zephyr-silabs \
+    && git clone https://github.com/SiliconLabsSoftware/zephyr-silabs.git \
+    && cd zephyr-silabs \
+    && git checkout 2f1aff555cbb3c64777c8704583dc0da926fe759 \
+    # Initialize west with the specific commit of the zephyr-silabs repository
+    # This commit corresponds to the version of the Zephyr SDK used in the project  
+    && cd ../ \
+    && west init -l ./zephyr-silabs  \
     && west update \
     && pip3 install -r zephyr/scripts/requirements.txt \
     && west blobs fetch \
