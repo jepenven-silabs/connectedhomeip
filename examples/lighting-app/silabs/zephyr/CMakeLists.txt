@@ -57,15 +57,11 @@ target_sources(app
     ${ZEPHYR_PLATFORM_COMMON}/CommonDeviceCallbacks.cpp
 )
 
-# TODO Implement OTA support
 if(CONFIG_CHIP_OTA_REQUESTOR)
-    # target_sources(app PRIVATE
-    #                 ${EXAMPLE_PLATFORM_SILABS_COMMON_DIR}/ota_requestor/source/OTARequestorInitiatorCommon.cpp
-    #                 ${EXAMPLE_PLATFORM_SILABS_COMMON_DIR}/ota_requestor/source/OTARequestorInitiatorZephyr.cpp
-    # )
-    # target_include_directories(app PRIVATE
-    #                 ${EXAMPLE_PLATFORM_SILABS_COMMON_DIR}/ota_requestor/include/
-    # )
+    target_sources(app PRIVATE
+                    ${ZEPHYR_PLATFORM_COMMON}/source/OTARequestorInitiatorCommon.cpp
+                    ${ZEPHYR_PLATFORM_COMMON}/source/OTARequestorInitiatorZephyr.cpp
+    )
 endif()
 
 if(CONFIG_CHIP_WIFI)
