@@ -177,7 +177,8 @@ extern uint32_t SystemCoreClock;
 // Keep the timerTask at the highest prio as some of our stacks tasks leverage eventing with timers.
 #define configTIMER_TASK_PRIORITY (55) /* Highest priority */
 #define configTIMER_QUEUE_LENGTH (10)
-#define configTIMER_TASK_STACK_DEPTH (1024)
+// configTIMER_TASK_STACK_DEPTH expect a number of words not bytes
+#define configTIMER_TASK_STACK_DEPTH (1024 / sizeof(StackType_t))
 
 #ifdef SLI_SI91X_MCU_INTERFACE
 #ifdef __NVIC_PRIO_BITS
@@ -214,7 +215,8 @@ See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION (0)
 #define configUSE_TICKLESS_IDLE_SIMPLE_DEBUG (1) /* See into vPortSuppressTicksAndSleep source code for explanation */
 #define configMAX_PRIORITIES (56)
-#define configMINIMAL_STACK_SIZE (320) /* Number of words to use for Idle and Timer stacks */
+// configMINIMAL_STACK_SIZE expect a number of words not bytes
+#define configMINIMAL_STACK_SIZE (320 / sizeof(StackType_t))
 
 #ifdef HEAP_MONITORING
 #define configMAX_TASK_NAME_LEN (24)

@@ -33,9 +33,9 @@ void appError(int err);
 #ifdef __cplusplus
 }
 
-// Output logs to RTT by defaults
+// Output logs to UART by defaults
 #ifndef SILABS_LOG_OUT_UART
-#define SILABS_LOG_OUT_UART 0
+#define SILABS_LOG_OUT_UART 1
 #endif
 
 #include <lib/core/CHIPError.h>
