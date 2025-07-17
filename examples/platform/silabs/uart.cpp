@@ -146,20 +146,11 @@ typedef struct
 
 // uart transmit
 #if SILABS_LOG_OUT_UART
-#define UART_MAX_QUEUE_SIZE 125
-#else
-#if (_SILICON_LABS_32B_SERIES < 3)
-#define UART_MAX_QUEUE_SIZE 25
-#else
-#define UART_MAX_QUEUE_SIZE 50
-#endif
+#define UART_MAX_QUEUE_SIZE 40
 #endif
 
-#ifdef CHIP_CONFIG_LOG_MESSAGE_MAX_SIZE
-#define UART_TX_MAX_BUF_LEN (CHIP_CONFIG_LOG_MESSAGE_MAX_SIZE + 2) // \r\n
-#else
-#define UART_TX_MAX_BUF_LEN (258)
-#endif
+#define UART_TX_MAX_BUF_LEN (255)
+
 
 static constexpr uint32_t kUartTxCompleteFlag = 1;
 static osThreadId_t sUartTaskHandle;
@@ -176,8 +167,9 @@ constexpr osThreadAttr_t kUartTaskAttr = { .name       = "UART",
 
 typedef struct
 {
-    uint8_t data[UART_TX_MAX_BUF_LEN];
-    uint16_t length = 0;
+    char data[UART_TX_MAX_BUF_LEN];
+    uint8_t length = 0;
+    bool isLog = false;
 } UartTxStruct_t;
 
 static osMessageQueueId_t sUartTxQueue;
@@ -191,6 +183,9 @@ constexpr osMessageQueueAttr_t kUartTxQueueAttr = { .cb_mem  = &sUartTxQueueStru
 // Rx buffer for the receive Fifo
 static uint8_t sRxFifoBuffer[MAX_BUFFER_SIZE];
 static Fifo_t sReceiveFifo;
+
+static uint32_t sNumberOfMsgDropped = 0; // Number of messages dropped in the UART Tx queue
+static uint8_t newline[] = "\r\n";
 
 #if SLI_SI91X_MCU_INTERFACE == 0
 static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount);
@@ -432,9 +427,15 @@ static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, ui
  */
 int16_t uartConsoleWrite(const char * Buf, uint16_t BufLength)
 {
-    if (Buf == NULL || BufLength < 1 || BufLength > UART_TX_MAX_BUF_LEN)
+    if (Buf == NULL || BufLength < 1)
     {
         return UART_CONSOLE_ERR;
+    }
+
+    if (BufLength > UART_TX_MAX_BUF_LEN)
+    {
+        // If the buffer is too long, truncate it to fit in the buffer
+        BufLength = UART_TX_MAX_BUF_LEN;
     }
 
     if (NULL == sUartTxQueue)
@@ -471,22 +472,46 @@ int16_t uartConsoleWrite(const char * Buf, uint16_t BufLength)
  */
 int16_t uartLogWrite(const char * log, uint16_t length)
 {
-    if (log == NULL || length < 1 || (length + 2) > UART_TX_MAX_BUF_LEN)
+    if (log == NULL || length < 1 )
     {
         return UART_CONSOLE_ERR;
     }
 
-    UartTxStruct_t workBuffer;
-    memcpy(workBuffer.data, log, length);
-    memcpy(workBuffer.data + length, "\r\n", 2);
-    workBuffer.length = length + 2;
+    bool appendDotDotDot = false;
 
-    // Don't wait when queue is full. Drop the log and return UART_CONSOLE_ERR
-    if (osMessageQueuePut(sUartTxQueue, &workBuffer, osPriorityNormal, 0) == osOK)
+    if (length > UART_TX_MAX_BUF_LEN)
     {
-        return length;
+        // If the log is too long, truncate it to fit in the buffer
+        length = UART_TX_MAX_BUF_LEN - 3; // to add ...
+        appendDotDotDot = true;
     }
 
+    UartTxStruct_t workBuffer;
+    workBuffer.isLog = true;
+    memcpy(workBuffer.data, log, length);
+
+    if (appendDotDotDot)
+    {
+        memcpy(workBuffer.data + length, "...", 3);
+        workBuffer.length = length + 3;
+    }
+    
+    if (osKernelGetState() != osKernelRunning)
+    {
+        UARTDRV_ForceTransmit(vcom_handle, reinterpret_cast<uint8_t *>(workBuffer.data), workBuffer.length);
+        UARTDRV_ForceTransmit(vcom_handle, newline, 2);
+        return workBuffer.length;
+    }
+    else {
+    // Don't wait when queue is full. Drop the log and return UART_CONSOLE_ERR
+        if (osMessageQueuePut(sUartTxQueue, &workBuffer, osPriorityNormal, 0) == osOK)
+        {
+            return length;
+        } else 
+        {
+            sNumberOfMsgDropped++;
+        }
+    }
     return UART_CONSOLE_ERR;
 }
 
@@ -525,13 +550,31 @@ int16_t uartConsoleRead(char * Buf, uint16_t NbBytesToRead)
 void uartMainLoop(void * args)
 {
     UartTxStruct_t workBuffer;
-
+    
     while (1)
     {
         osStatus_t eventReceived = osMessageQueueGet(sUartTxQueue, &workBuffer, nullptr, osWaitForever);
         while (eventReceived == osOK)
         {
             uartSendBytes(workBuffer);
+            if(workBuffer.isLog)
+            {
+                // If this is a log, append a new line to the end of the log
+                memcpy(workBuffer.data, newline,2);
+                workBuffer.length = 2; 
+                uartSendBytes(workBuffer);
+            }
+
+            if (sNumberOfMsgDropped)
+            {
+                int32_t nb = sprintf(workBuffer.data, "\r\n%ld Logs dropped !!! \r\n", sNumberOfMsgDropped);
+                if (nb > 0) 
+                {
+                    sNumberOfMsgDropped=0;
+                    workBuffer.length = static_cast<uint8_t>(nb);
+                    uartSendBytes(workBuffer);
+                }
+            }
             eventReceived = osMessageQueueGet(sUartTxQueue, &workBuffer, nullptr, 0);
         }
     }
@@ -567,10 +610,10 @@ void uartSendBytes(UartTxStruct_t & bufferStruct)
 #if (defined(EFR32MG24) && defined(WF200_WIFI))
     // Blocking transmit for the MG24 + WF200 since UART TX is multiplexed with
     // WF200 SPI IRQ
-    UARTDRV_ForceTransmit(vcom_handle, bufferStruct.data, bufferStruct.length);
+    UARTDRV_ForceTransmit(vcom_handle, reinterpret_cast<uint8_t *>(bufferStruct.data), bufferStruct.length);
 #else
     // Non Blocking Transmit
-    UARTDRV_Transmit(vcom_handle, bufferStruct.data, bufferStruct.length, UART_tx_callback);
+    UARTDRV_Transmit(vcom_handle, reinterpret_cast<uint8_t *>(bufferStruct.data), bufferStruct.length, UART_tx_callback);
     osThreadFlagsWait(kUartTxCompleteFlag, osFlagsWaitAny, osWaitForever);
 #endif /* EFR32MG24 && WF200_WIFI */
 
@@ -607,7 +650,7 @@ void uartFlushTxQueue(void)
         }
         Board_UARTPutSTR(workBuffer.data);
 #else
-        UARTDRV_ForceTransmit(vcom_handle, workBuffer.data, workBuffer.length);
+        UARTDRV_ForceTransmit(vcom_handle, reinterpret_cast<uint8_t *>(workBuffer.data), workBuffer.length);
 #endif
     }
 }
