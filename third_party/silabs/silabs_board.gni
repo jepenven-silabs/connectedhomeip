@@ -222,7 +222,7 @@ declare_args() {
 
   # UART log forwarding
   # Default true for the wifi soc and false for EFR32 boards
-  sl_uart_log_output = wifi_soc
+  sl_uart_log_output = true
 }
 
 # Silabs mcu family and mcu model must be specified

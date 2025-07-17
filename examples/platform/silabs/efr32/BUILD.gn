@@ -26,7 +26,7 @@ import("${matter_support_root}/provision/args.gni")  # Seperate import since the
                                                      # defined in the
                                                      # ef32_sdk.gni
 declare_args() {
-  enable_heap_monitoring = false
+  enable_heap_monitoring = true
 
   # OTA timeout in seconds
   ota_periodic_query_timeout_sec = 86400

@@ -126,6 +126,19 @@ void AppTask::AppTaskMain(void * pvParameter)
 
     SILABS_LOG("App Task started");
 
+    // TODO removed me
+    // uint32_t count = 0;
+    // while(true)
+    // {
+    //     SILABS_LOG("To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles, and by opposing end them.");
+    //     if (count++ == 200)
+    //     {
+    //         count = 0;
+    //         osDelay(10000);
+    //     }
+    // }
+    
+
     while (true)
     {
         osStatus_t eventReceived = osMessageQueueGet(sAppEventQueue, &event, NULL, osWaitForever);
