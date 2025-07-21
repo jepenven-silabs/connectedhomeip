@@ -488,6 +488,7 @@ int16_t uartLogWrite(const char * log, uint16_t length)
 
     UartTxStruct_t workBuffer;
     workBuffer.isLog = true;
+    workBuffer.length = length;
     memcpy(workBuffer.data, log, length);
 
     if (appendDotDotDot)
