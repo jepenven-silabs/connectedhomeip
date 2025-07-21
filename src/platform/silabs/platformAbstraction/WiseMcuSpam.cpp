@@ -103,10 +103,6 @@ CHIP_ERROR SilabsPlatform::Init(void)
     silabsInitLog();
 #endif
 
-#if SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
-    uartConsoleInit();
-#endif
-
 #ifdef SL_CATALOG_SYSTEMVIEW_TRACE_PRESENT
     SEGGER_SYSVIEW_Conf();
 #endif

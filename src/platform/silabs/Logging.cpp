@@ -48,7 +48,9 @@
 #endif
 
 #if SILABS_LOG_OUT_UART
-#include "uart.h"
+#include "sl_iostream.h"
+#include "sl_iostream_init_instances.h"
+#include "sl_iostream_handles.h"
 #endif
 
 // SEGGER_RTT includes
@@ -119,13 +121,16 @@ static void PrintLog(const char * msg)
 {
     if (sLogInitialized)
     {
+#if SILABS_LOG_OUT_UART
+        // TODO Mutex take
+        printf("%s",msg);
+        sl_iostream_write(sl_iostream_vcom_handle, msg, strlen(msg));
+        // TODO Mutex give
+#else
+#if PW_RPC_ENABLED
         size_t sz;
         sz = strlen(msg);
 
-#if SILABS_LOG_OUT_UART
-        uartLogWrite(msg, sz);
-#else
-#if PW_RPC_ENABLED
         PigweedLogger::putString(msg, sz);
 #endif // PW_RPC_ENABLED
         SEGGER_RTT_WriteNoLock(LOG_RTT_BUFFER_INDEX, msg, sz);
@@ -160,6 +165,27 @@ extern "C" void silabsInitLog(void)
     SEGGER_RTT_SetFlagsUpBuffer(LOG_RTT_BUFFER_INDEX, SEGGER_RTT_MODE_NO_BLOCK_TRIM);
 #endif
 #endif // !SILABS_LOG_OUT_UART
+
+
+#if SILABS_LOG_OUT_UART
+#if !defined(__CROSSWORKS_ARM) && defined(__GNUC__)
+ setvbuf(stdout, NULL, _IONBF, 0);  /*Set unbuffered mode for stdout (newlib)*/
+ setvbuf(stdin, NULL, _IONBF, 0);  /*Set unbuffered mode for stdin (newlib)*/
+#endif
+  /* Output on vcom usart instance */
+  const char str1[] = "IOstream USART example\r\n\r\n";
+  sl_iostream_write(sl_iostream_vcom_handle, str1, strlen(str1));
+
+  /* Setting default stream */
+  sl_iostream_set_default(sl_iostream_vcom_handle);
+  const char str2[] = "This is output on the default stream\r\n";
+  sl_iostream_write(SL_IOSTREAM_STDOUT, str2, strlen(str2));
+
+  /* Using printf */
+  /* Writing ASCII art to the VCOM iostream */
+  printf("Printf uses the default stream, as long as iostream_retarget_stdio is included.\r\n");
+
+#endif
 
 #ifdef PW_RPC_ENABLED
     PigweedLogger::init();

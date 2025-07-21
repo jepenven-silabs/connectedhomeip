@@ -42,6 +42,9 @@ component:
 # Platform support
 - {id: cpp_support}
 - {id: sl_main}
+- {id: iostream_retarget_stdio}
+- instance: [vcom]
+  id: iostream_usart
 - {id: device_init}
 - {id: memory_manager}
 - {id: silabs_core_memory_manager}
@@ -117,8 +120,6 @@ configuration:
 - {name: SL_OPENTHREAD_ENABLE_SERIAL_TASK, value: 0}
 
 requires:
-- condition: [device_series_2]
-  name: uartdrv_eusart
 - condition: [device_series_2]
   name: device_init_dpll
 - condition: [device_series_2]

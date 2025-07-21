@@ -873,6 +873,7 @@ template("efr32_sdk") {
       "${silabs_gen_folder}/autogen/sl_board_default_init.c",
       "${silabs_gen_folder}/autogen/sl_event_handler.c",
       "${silabs_gen_folder}/autogen/sl_iostream_handles.c",
+      "${silabs_gen_folder}/autogen/sl_iostream_init_usart_instances.c",
       "${silabs_gen_folder}/main.c",
     ]
     if (enable_dic) {
@@ -990,11 +991,16 @@ template("efr32_sdk") {
         "${efr32_sdk_root}/platform/emdrv/uartdrv/src/uartdrv.c",
         "${efr32_sdk_root}/platform/emlib/src/em_eusart.c",
         "${efr32_sdk_root}/platform/emlib/src/em_usart.c",
-        "${silabs_gen_folder}/autogen/sl_uartdrv_init.c",
+        "${efr32_sdk_root}/platform/service/iostream/src/sl_iostream_usart.c",
+        "${efr32_sdk_root}/platform/service/iostream/src/sl_iostream_uart.c",
       ]
 
       if (use_external_flash) {
         sources += [ "${efr32_sdk_root}/hardware/driver/mx25_flash_shutdown/src/sl_mx25_flash_shutdown_usart/sl_mx25_flash_shutdown.c" ]
+      }
+
+      if (enable_openthread_cli) {
+        sources += [ "${efr32_sdk_root}/protocol/openthread/platform-abstraction/efr32/iostream_uart.c" ]
       }
     }
 

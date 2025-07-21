@@ -118,10 +118,6 @@ CHIP_ERROR SilabsPlatform::Init(void)
     SEGGER_SYSVIEW_Conf();
 #endif
 
-#if SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL || CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
-    uartConsoleInit();
-#endif
-
 #if SILABS_LOG_ENABLED
     silabsInitLog();
 #endif
