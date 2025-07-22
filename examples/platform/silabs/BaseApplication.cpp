@@ -89,7 +89,7 @@
 #define FACTORY_RESET_TRIGGER_TIMEOUT 3000
 #define FACTORY_RESET_CANCEL_WINDOW_TIMEOUT 3000
 #ifndef APP_TASK_STACK_SIZE
-#define APP_TASK_STACK_SIZE (4096)
+#define APP_TASK_STACK_SIZE (2048)
 #endif
 #ifndef APP_EVENT_QUEUE_SIZE // Allow apps to define a different app queue size
 #define APP_EVENT_QUEUE_SIZE 10

@@ -73,7 +73,7 @@ void MemMonitoring::MonitorTask(void * pvParameter)
             if (tId != sMonitorThreadHandle) // don't print stats for this current debug thread.
             {
                 // The smallest amount of free stack space there has been since the thread creation
-                SILABS_LOG("\t%-10s : %6lu B", osThreadGetName(tId), osThreadGetStackSpace(tId));
+                SILABS_LOG("\t%-10s : %6lu / %4lu B", osThreadGetName(tId), osThreadGetStackSpace(tId), osThreadGetStackSize(tId));
             }
         }
 

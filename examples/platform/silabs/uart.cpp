@@ -152,6 +152,15 @@ typedef struct
 #define UART_TX_MAX_BUF_LEN (255)
 
 
+osMutexId_t mutex_id;  
+ 
+const osMutexAttr_t Thread_Mutex_attr = {
+  "myThreadMutex",                          // human readable mutex name
+  osMutexRecursive | osMutexPrioInherit,    // attr_bits
+  NULL,                                     // memory for control block   
+  0U                                        // size for control block
+};
+
 static constexpr uint32_t kUartTxCompleteFlag = 1;
 static osThreadId_t sUartTaskHandle;
 constexpr uint32_t kUartTaskSize = 1024;
@@ -185,6 +194,7 @@ static uint8_t sRxFifoBuffer[MAX_BUFFER_SIZE];
 static Fifo_t sReceiveFifo;
 
 static uint32_t sNumberOfMsgDropped = 0; // Number of messages dropped in the UART Tx queue
+static uint8_t sBiggestLogSize = 0;
 static uint8_t newline[] = "\r\n";
 
 #if SLI_SI91X_MCU_INTERFACE == 0
@@ -486,6 +496,11 @@ int16_t uartLogWrite(const char * log, uint16_t length)
         appendDotDotDot = true;
     }
 
+    if (sBiggestLogSize < length)
+    {
+        sBiggestLogSize = length;
+    }
+
     UartTxStruct_t workBuffer;
     workBuffer.isLog = true;
     workBuffer.length = length;
@@ -568,7 +583,7 @@ void uartMainLoop(void * args)
 
             if (sNumberOfMsgDropped)
             {
-                int32_t nb = sprintf(workBuffer.data, "\r\n%ld Logs dropped !!! \r\n", sNumberOfMsgDropped);
+                int32_t nb = sprintf(workBuffer.data, "\r\n\r\n%ld Logs dropped. Biggest Log size %d  !!! \r\n\r\n", sNumberOfMsgDropped, sBiggestLogSize);
                 if (nb > 0) 
                 {
                     sNumberOfMsgDropped=0;
@@ -614,7 +629,9 @@ void uartSendBytes(UartTxStruct_t & bufferStruct)
     UARTDRV_ForceTransmit(vcom_handle, reinterpret_cast<uint8_t *>(bufferStruct.data), bufferStruct.length);
 #else
     // Non Blocking Transmit
+
     UARTDRV_Transmit(vcom_handle, reinterpret_cast<uint8_t *>(bufferStruct.data), bufferStruct.length, UART_tx_callback);
+
     osThreadFlagsWait(kUartTxCompleteFlag, osFlagsWaitAny, osWaitForever);
 #endif /* EFR32MG24 && WF200_WIFI */
 
