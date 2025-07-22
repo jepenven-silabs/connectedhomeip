@@ -30,8 +30,8 @@
 
 // Macro to flush UART TX queue if enabled
 #if SILABS_LOG_OUT_UART
-#define SILABS_UART_FLUSH() uartFlushTxQueue()
-#else
+// #define SILABS_UART_FLUSH() uartFlushTxQueue()
+// #else
 #define SILABS_UART_FLUSH() ((void) 0)
 #endif
 

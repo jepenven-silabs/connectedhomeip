@@ -42,6 +42,9 @@ component:
 # Platform support
 - {id: cpp_support}
 - {id: sl_main}
+- {id: iostream_retarget_stdio}
+- instance: [vcom]
+  id: iostream_eusart
 - {id: device_init}
 - {id: memory_manager}
 - {id: silabs_core_memory_manager}
@@ -92,21 +95,24 @@ configuration:
   value: 0
 - name: SL_OPENTHREAD_ENABLE_CLI_TASK
   value: 0
+- name: SL_BOARD_ENABLE_VCOM
+  value '1'
 - {name: SL_MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED, value: '0'}
 - {name: SL_MBEDTLS_KEY_EXCHANGE_PSK_ENABLED, value: '1'}
-- condition: [uartdrv_usart]
-  name: UARTDRV_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
+- condition: [iostream_eusart]
+  name: SL_IOSTREAM_EUSART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
   value: '1'
-- condition: [iostream_usart]
-  name: SL_IOSTREAM_USART_VCOM_RESTRICT_ENERGY_MODE_TO_ALLOW_RECEPTION
-  value: '1'
-- condition: [iostream_usart]
-  name: SL_IOSTREAM_USART_VCOM_RX_BUFFER_SIZE
+- condition: [iostream_eusart]
+  name: SL_IOSTREAM_EUSART_VCOM_RX_BUFFER_SIZE
   value: '128'
+- condition: [iostream_eusart]
+  name: SL_IOSTREAM_EUSART_VCOM_ENABLE_HIGH_FREQUENCY
+  value: '1'
+- condition: [iostream_eusart]
+  name: SL_IOSTREAM_EUSART_VCOM_BAUDRATE
+  value: '921600'
 - {name: SL_HEAP_SIZE, value: '0'}
 - {name: SL_STACK_SIZE, value: '4608'}
-- {name: SL_BOARD_ENABLE_VCOM, value: '0'}
-- {name: EMDRV_UARTDRV_FLOW_CONTROL_ENABLE, value: '0'}
 - {name: NVM3_DEFAULT_MAX_OBJECT_SIZE, value: '4092'}
 - {name: CIRCULAR_QUEUE_LEN_MAX, value: '16'}
 - {name: SL_CLOCK_MANAGER_HFRCO_DPLL_EN, value: 1}
@@ -117,8 +123,6 @@ configuration:
 - {name: SL_OPENTHREAD_ENABLE_SERIAL_TASK, value: 0}
 
 requires:
-- condition: [device_series_2]
-  name: uartdrv_eusart
 - condition: [device_series_2]
   name: device_init_dpll
 - condition: [device_series_2]

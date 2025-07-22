@@ -35,7 +35,8 @@ extern "C" {
 #endif
 
 #if SILABS_LOG_OUT_UART
-#include "uart.h"
+#include "sl_iostream.h"
+#include "sl_iostream_handles.h"
 #endif
 
 int _open(char * path, int flags, ...);
@@ -192,7 +193,9 @@ int __attribute__((weak)) _lseek(int file, int ptr, int dir)
 int _read(int file, char * ptr, int len)
 {
     (void) file;
-    return uartConsoleRead(ptr, len);
+    size_t bytes_read = 0;
+    sl_iostream_read(sl_iostream_vcom_handle, ptr, len, &bytes_read);
+    return static_cast<int>(bytes_read);
 }
 #else
 int __attribute__((weak)) _read(int file, char * ptr, int len)
@@ -225,7 +228,13 @@ int __attribute__((weak)) _read(int file, char * ptr, int len)
 int _write(int file, const char * ptr, int len)
 {
     (void) file;
-    return uartConsoleWrite(ptr, len);
+    sl_status_t status;
+    status = sl_iostream_write(sl_iostream_vcom_handle, (uint8_t *)ptr, len);
+    if (status == SL_STATUS_OK)
+    {
+        return len;
+    }
+    return 0;
 }
 #else
 int __attribute__((weak)) _write(int file, const char * ptr, int len)

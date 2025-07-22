@@ -36,8 +36,8 @@ template_path = os.path.join(root_path, "third_party/silabs/slc_gen/")
 slc_arguments = ""
 
 # Add Familly specific component
-if isMG24(silabs_mcu) or isMG26(silabs_mcu):
-    slc_arguments += "uartdrv_eusart:vcom,"
+# if isMG24(silabs_mcu) or isMG26(silabs_mcu):
+#     slc_arguments += "uartdrv_eusart:vcom,"
 
 # Translate GN arguments in SLC arguments
 if not disable_lcd:

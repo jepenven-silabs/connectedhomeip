@@ -156,15 +156,15 @@ extern "C" __WEAK void sl_openthread_init(void)
 #include "uart.h"
 #endif
 
-extern "C" otError otPlatUartEnable(void)
-{
-#ifdef PW_RPC_ENABLED
-    return OT_ERROR_NOT_IMPLEMENTED;
-#else
-    // Uart Init is handled in init_efrPlatform.cpp
-    return OT_ERROR_NONE;
-#endif
-}
+// extern "C" otError otPlatUartEnable(void)
+// {
+// #ifdef PW_RPC_ENABLED
+//     return OT_ERROR_NOT_IMPLEMENTED;
+// #else
+//     // Uart Init is handled in init_efrPlatform.cpp
+//     return OT_ERROR_NONE;
+// #endif
+// }
 
 extern "C" otInstance * otGetInstance(void)
 {
@@ -188,42 +188,42 @@ extern "C" void sl_ot_cli_init(void)
 
 #if CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
 
-extern "C" otError otPlatUartSend(const uint8_t * aBuf, uint16_t aBufLength)
-{
-#ifdef PW_RPC_ENABLED
-    return OT_ERROR_NOT_IMPLEMENTED;
-#else
-    if (uartConsoleWrite((const char *) aBuf, aBufLength) > 0)
-    {
-        otPlatUartSendDone();
-        return OT_ERROR_NONE;
-    }
-    return OT_ERROR_FAILED;
-#endif
-}
+// extern "C" otError otPlatUartSend(const uint8_t * aBuf, uint16_t aBufLength)
+// {
+// #ifdef PW_RPC_ENABLED
+//     return OT_ERROR_NOT_IMPLEMENTED;
+// #else
+//     if (uartConsoleWrite((const char *) aBuf, aBufLength) > 0)
+//     {
+//         otPlatUartSendDone();
+//         return OT_ERROR_NONE;
+//     }
+//     return OT_ERROR_FAILED;
+// #endif
+// }
 
-extern "C" void efr32UartProcess(void)
-{
-#if !defined(PW_RPC_ENABLED) && !defined(ENABLE_CHIP_SHELL)
-    uint8_t tempBuf[128] = { 0 };
-    // will read the data available up to 128bytes
-    int16_t count = uartConsoleRead((char *) tempBuf, 128);
-    if (count > 0)
-    {
-        // ot process Received data for CLI cmds
-        otPlatUartReceived(tempBuf, count);
-    }
-#endif
-}
+// extern "C" void efr32UartProcess(void)
+// {
+// #if !defined(PW_RPC_ENABLED) && !defined(ENABLE_CHIP_SHELL)
+//     uint8_t tempBuf[128] = { 0 };
+//     // will read the data available up to 128bytes
+//     int16_t count = uartConsoleRead((char *) tempBuf, 128);
+//     if (count > 0)
+//     {
+//         // ot process Received data for CLI cmds
+//         otPlatUartReceived(tempBuf, count);
+//     }
+// #endif
+// }
 
-extern "C" __WEAK otError otPlatUartFlush(void)
-{
-    return OT_ERROR_NOT_IMPLEMENTED;
-}
+// extern "C" __WEAK otError otPlatUartFlush(void)
+// {
+//     return OT_ERROR_NOT_IMPLEMENTED;
+// }
 
-extern "C" __WEAK otError otPlatUartDisable(void)
-{
-    return OT_ERROR_NOT_IMPLEMENTED;
-}
+// extern "C" __WEAK otError otPlatUartDisable(void)
+// {
+//     return OT_ERROR_NOT_IMPLEMENTED;
+// }
 
 #endif // CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
