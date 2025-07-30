@@ -37,7 +37,7 @@
 
 &sram0 {
     status = "okay";
-    reg = <0x00000000 DT_SIZE_K(320)>;
+    reg = <0x00000000 DT_SIZE_K(319)>;
 };
 
 &flash0 {
