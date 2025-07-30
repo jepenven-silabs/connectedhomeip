@@ -154,8 +154,11 @@ const Map<wifi_iface_state, WiFiManager::StationStatus, 10>
                               { WIFI_STATE_4WAY_HANDSHAKE, WiFiManager::StationStatus::PROVISIONING },
                               { WIFI_STATE_GROUP_HANDSHAKE, WiFiManager::StationStatus::PROVISIONING },
                               { WIFI_STATE_COMPLETED, WiFiManager::StationStatus::FULLY_PROVISIONED } });
-
+#if KERNEL_VERSION_MAJOR >= 4 && KERNEL_VERSION_MINOR >= 2
+const Map<uint64_t, WiFiManager::NetEventHandler, 5> WiFiManager::sEventHandlerMap({
+#else
 const Map<uint32_t, WiFiManager::NetEventHandler, 5> WiFiManager::sEventHandlerMap({
+#endif
     { NET_EVENT_WIFI_SCAN_RESULT, WiFiManager::ScanResultHandler },
     { NET_EVENT_WIFI_SCAN_DONE, WiFiManager::ScanDoneHandler },
     { NET_EVENT_WIFI_CONNECT_RESULT, WiFiManager::ConnectHandler },
@@ -164,8 +167,11 @@ const Map<uint32_t, WiFiManager::NetEventHandler, 5> WiFiManager::sEventHandlerM
     { NET_EVENT_WIFI_DISCONNECT_COMPLETE, WiFiManager::DisconnectHandler },
 #endif // CONFIG_WIFI_NM_WPA_SUPPLICANT
 });
-
+#if KERNEL_VERSION_MAJOR >= 4 && KERNEL_VERSION_MINOR >= 2
+void WiFiManager::WifiMgmtEventHandler(net_mgmt_event_callback * cb, uint64_t mgmtEvent, net_if * iface)
+#else
 void WiFiManager::WifiMgmtEventHandler(net_mgmt_event_callback * cb, uint32_t mgmtEvent, net_if * iface)
+#endif
 {
     if (iface == Instance().mNetIf)
     {
@@ -176,7 +182,11 @@ void WiFiManager::WifiMgmtEventHandler(net_mgmt_event_callback * cb, uint32_t mg
     }
 }
 
+#if KERNEL_VERSION_MAJOR >= 4 && KERNEL_VERSION_MINOR >= 2
+void WiFiManager::IPv6MgmtEventHandler(net_mgmt_event_callback * cb, uint64_t mgmtEvent, net_if * iface)
+#else
 void WiFiManager::IPv6MgmtEventHandler(net_mgmt_event_callback * cb, uint32_t mgmtEvent, net_if * iface)
+#endif
 {
     if (((mgmtEvent == NET_EVENT_IPV6_ADDR_ADD) || (mgmtEvent == NET_EVENT_IPV6_ADDR_DEL)) && cb->info)
     {
