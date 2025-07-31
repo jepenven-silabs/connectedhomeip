@@ -40,18 +40,52 @@
     reg = <0x00000000 DT_SIZE_K(319)>;
 };
 
+
+/*
 &flash0 {
     status = "okay";
     partitions {
+        code_partition: partition@0 {
+			reg = <0x0000000 DT_SIZE_K(2000)>;
+			label = "code_partition";
+		};
 
-        factory_partition: partition@0119000 {
+        factory_partition: partition@1f4000 {
             label = "factory-data";
-            reg = <0x0119000 DT_SIZE_K(4)>;
+            reg = <0x001f400 DT_SIZE_K(4)>;
         };
 
-        settings_partition: partition@0132000 {
+        settings_partition: partition@1f500 {
             label = "settings_partition";
-            reg = <0x0132000 DT_SIZE_K(4)>;
+            reg = <0x001f5000 DT_SIZE_K(4)>;
         };
+
+        storage_partition: partition@1f6000 {
+			reg = <0x001f6000 DT_SIZE_K(32)>;
+			label = "storage";
+		};
     };
+};
+
+*/
+
+&flash0 {
+        partitions {
+                factory_partition: partition@1e3000 {
+                        reg = <0x001e3000 DT_SIZE_K(4)>;
+                };
+
+                settings_partition: partition@1e4000 {
+                        reg = <0x001e4000 DT_SIZE_K(4)>;
+                };
+        };
+};
+
+&code_partition {
+       reg = <0x0000000 DT_SIZE_K(1932)>;
+};
+
+
+&storage_partition {
+        reg = <0x001e5000 DT_SIZE_K(100)>;
 };
