@@ -99,7 +99,7 @@ static_library("Zephyr") {
     sources += [
       "wifi/ConnectivityManagerImplWiFi.cpp",
       "wifi/WiFiManager.cpp",
-      "wifi/ZephyrWiFiDriver.cpp",
+      "wifi/ZephyrWifiDriver.cpp",
     ]
   }
 
