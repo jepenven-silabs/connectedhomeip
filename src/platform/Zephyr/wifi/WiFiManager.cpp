@@ -155,19 +155,6 @@ const Map<wifi_iface_state, WiFiManager::StationStatus, 10>
                               { WIFI_STATE_GROUP_HANDSHAKE, WiFiManager::StationStatus::PROVISIONING },
                               { WIFI_STATE_COMPLETED, WiFiManager::StationStatus::FULLY_PROVISIONED } });
 #if KERNEL_VERSION_MAJOR >= 4 && KERNEL_VERSION_MINOR >= 2
-const Map<uint64_t, WiFiManager::NetEventHandler, 5> WiFiManager::sEventHandlerMap({
-#else
-const Map<uint32_t, WiFiManager::NetEventHandler, 5> WiFiManager::sEventHandlerMap({
-#endif
-    { NET_EVENT_WIFI_SCAN_RESULT, WiFiManager::ScanResultHandler },
-    { NET_EVENT_WIFI_SCAN_DONE, WiFiManager::ScanDoneHandler },
-    { NET_EVENT_WIFI_CONNECT_RESULT, WiFiManager::ConnectHandler },
-#ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
-    { NET_EVENT_WIFI_DISCONNECT_RESULT, WiFiManager::DisconnectHandler },
-    { NET_EVENT_WIFI_DISCONNECT_COMPLETE, WiFiManager::DisconnectHandler },
-#endif // CONFIG_WIFI_NM_WPA_SUPPLICANT
-});
-#if KERNEL_VERSION_MAJOR >= 4 && KERNEL_VERSION_MINOR >= 2
 void WiFiManager::WifiMgmtEventHandler(net_mgmt_event_callback * cb, uint64_t mgmtEvent, net_if * iface)
 #else
 void WiFiManager::WifiMgmtEventHandler(net_mgmt_event_callback * cb, uint32_t mgmtEvent, net_if * iface)
@@ -178,7 +165,28 @@ void WiFiManager::WifiMgmtEventHandler(net_mgmt_event_callback * cb, uint32_t mg
         Platform::UniquePtr<uint8_t> eventData(new uint8_t[cb->info_length]);
         VerifyOrReturn(eventData);
         memcpy(eventData.get(), cb->info, cb->info_length);
-        sEventHandlerMap[mgmtEvent](std::move(eventData), cb->info_length);
+        switch (mgmtEvent)
+        {
+        case NET_EVENT_WIFI_SCAN_RESULT:
+            WiFiManager::ScanResultHandler(std::move(eventData), cb->info_length);
+            break;
+        case NET_EVENT_WIFI_SCAN_DONE:
+            WiFiManager::ScanDoneHandler(std::move(eventData), cb->info_length);
+            break;
+        case NET_EVENT_WIFI_CONNECT_RESULT:
+            WiFiManager::ConnectHandler(std::move(eventData), cb->info_length);
+            break;
+#ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
+        case NET_EVENT_WIFI_DISCONNECT_RESULT:
+            WiFiManager::DisconnectHandler(std::move(eventData), cb->info_length);
+            break;
+        case NET_EVENT_WIFI_DISCONNECT_COMPLETE:
+            WiFiManager::DisconnectHandler(std::move(eventData), cb->info_length);
+            break;
+#endif // CONFIG_WIFI_NM_WPA_SUPPLICANT
+        default:
+            break;
+        }
     }
 }
 
@@ -577,11 +585,11 @@ void WiFiManager::DisconnectHandler(Platform::UniquePtr<uint8_t> data, size_t le
     VerifyOrReturn(length == sizeof(wifi_status));
 
     CHIP_ERROR err = SystemLayer().ScheduleLambda([capturedData = data.get()] {
+        uint16_t reason            = 0;
+#ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
         Platform::UniquePtr<uint8_t> safePtr(capturedData);
         uint8_t * rawData          = safePtr.get();
         const wifi_status * status = reinterpret_cast<const wifi_status *>(rawData);
-        uint16_t reason            = 0;
-#ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT
         switch (status->disconn_reason)
         {
         case WIFI_REASON_DISCONN_UNSPECIFIED:

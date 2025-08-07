@@ -265,11 +265,6 @@ private:
     uint16_t mLastDisconnectedReason;
 
     static const Map<wifi_iface_state, StationStatus, 10> sStatusMap;
-#if KERNEL_VERSION_MAJOR >= 4 && KERNEL_VERSION_MINOR >= 2
-    static const Map<uint64_t, NetEventHandler, 5> sEventHandlerMap;
-#else
-    static const Map<uint32_t, NetEventHandler, 5> sEventHandlerMap;
-#endif
 };
 
 } // namespace DeviceLayer
