@@ -3,6 +3,17 @@ config BT_HOST_CRYPTO
     bool
     default n
 
+
+config CHIP_MALLOC_SYS_HEAP
+    default n
+
+config CHIP_MALLOC_SYS_HEAP_SIZE
+    default 8192 if NET_L2_OPENTHREAD
+    default 20480 if CHIP_WIFI
+config CHIP_MALLOC_SYS_HEAP_OVERRIDE
+    default n
+
+
 # ==============================================================================
 # Logging configuration
 # ==============================================================================
@@ -22,6 +33,9 @@ endchoice
 
 config CHIP_APP_LOG_LEVEL
     default 4 # debug
+
+config LOG_BUFFER_SIZE
+    default 4096
 
 config LOG_DEFAULT_LEVEL
     default 1 # error
