@@ -28,7 +28,7 @@ if LOG
 #endchoice
 
 choice MATTER_LOG_LEVEL_CHOICE
-    default MATTER_LOG_LEVEL_DBG
+    default MATTER_LOG_LEVEL_INF
 endchoice
 
 config CHIP_APP_LOG_LEVEL
