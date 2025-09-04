@@ -4,15 +4,21 @@ config BT_HOST_CRYPTO
     default n
 
 
-config CHIP_MALLOC_SYS_HEAP
-    default n
+#config CHIP_MALLOC_SYS_HEAP
+#    default y
 
-config CHIP_MALLOC_SYS_HEAP_SIZE
-    default 8192 if NET_L2_OPENTHREAD
-    default 20480 if CHIP_WIFI
-config CHIP_MALLOC_SYS_HEAP_OVERRIDE
-    default n
+#config CHIP_MALLOC_SYS_HEAP_SIZE
+#    default 8192 if NET_L2_OPENTHREAD
+#    default 102400 if CHIP_WIFI # NWP uses 48K by itself
+#config CHIP_MALLOC_SYS_HEAP_OVERRIDE
+#    default y
+#config CHIP_MALLOC_SYS_HEAP_WATERMARKS_SUPPORT
+#    default y
+#config HEAP_MEM_POOL_SIZE
+#    default 12288 if CHIP_WIFI
 
+config COMMON_LIBC_MALLOC_ARENA_SIZE
+    default -1
 
 # ==============================================================================
 # Logging configuration
@@ -28,7 +34,7 @@ if LOG
 #endchoice
 
 choice MATTER_LOG_LEVEL_CHOICE
-    default MATTER_LOG_LEVEL_INF
+    default MATTER_LOG_LEVEL_DBG
 endchoice
 
 config CHIP_APP_LOG_LEVEL
