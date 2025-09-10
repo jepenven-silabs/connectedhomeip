@@ -47,7 +47,7 @@
                 };
 
                 settings_partition: partition@1e4000 {
-                        reg = <0x00204200 DT_SIZE_K(8)>;
+                        reg = <0x00204200 DT_SIZE_K(32)>;
                 };
         };
 };
@@ -58,5 +58,5 @@
 
 
 &storage_partition {
-        reg = <0x003e8000 DT_SIZE_K(92)>;
+        reg = <0x00406200 DT_SIZE_K(92)>;
 };

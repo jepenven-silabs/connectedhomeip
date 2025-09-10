@@ -72,20 +72,20 @@
 &flash0 {
         partitions {
                 factory_partition: partition@1e3000 {
-                        reg = <0x001e3000 DT_SIZE_K(4)>;
+                        reg = <0x00203200 DT_SIZE_K(4)>;
                 };
 
                 settings_partition: partition@1e4000 {
-                        reg = <0x001e4000 DT_SIZE_K(32)>;
+                        reg = <0x00204200 DT_SIZE_K(32)>;
                 };
         };
 };
 
 &code_partition {
-       reg = <0x0000000 DT_SIZE_K(1932)>;
+       reg = <0x202000 DT_SIZE_K(1932)>;
 };
 
 
 &storage_partition {
-        reg = <0x00264000 DT_SIZE_K(68)>;
+        reg = <0x00406200 DT_SIZE_K(68)>;
 };
