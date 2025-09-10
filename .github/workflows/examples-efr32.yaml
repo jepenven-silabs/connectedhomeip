@@ -145,7 +145,7 @@ jobs:
   #       with:
   #         platform-name: EFR32
   zephyr:
-    name: ZEPHYR
+    name: Zephyr
 
     runs-on: ubuntu-latest
     if: github.actor != 'restyled-io[bot]'
