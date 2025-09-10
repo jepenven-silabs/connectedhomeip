@@ -52,11 +52,29 @@ static_library("Zephyr") {
     "ZephyrConfig.h",
   ]
 
+  public = [
+    "${chip_root}/src/credentials/CHIPCert.h",
+    "${chip_root}/src/credentials/CertificationDeclaration.h",
+    "${chip_root}/src/credentials/DeviceAttestationCredsProvider.h",
+    "${chip_root}/src/credentials/attestation_verifier/DefaultDeviceAttestationVerifier.h",
+    "${chip_root}/src/credentials/attestation_verifier/DeviceAttestationVerifier.h",
+    "${chip_root}/src/credentials/examples/DeviceAttestationCredsExample.h",
+    "${chip_root}/src/credentials/examples/ExampleDACs.h",
+    "${chip_root}/src/credentials/examples/ExamplePAI.h",
+  ]
+
   public_deps = [ "${chip_root}/src/platform:platform_base" ]
+
   deps = [
     "${chip_root}/src/app:app_config",
     "${chip_root}/src/app/common:ids",
     "${chip_root}/src/platform/logging:headers",
+  ]
+
+  # TODO Add a way to customize Factory Data source
+  sources += [
+    "DeviceInstanceInfoProviderImpl.cpp",
+    "DeviceInstanceInfoProviderImpl.h",
   ]
 
   if (chip_enable_openthread) {
@@ -75,6 +93,14 @@ static_library("Zephyr") {
       ]
       deps += [ "${chip_root}/src/lib/dnssd:platform_header" ]
     }
+  }
+
+  if (chip_enable_wifi) {
+    sources += [
+      "wifi/ConnectivityManagerImplWiFi.cpp",
+      "wifi/WiFiManager.cpp",
+      "wifi/ZephyrWifiDriver.cpp",
+    ]
   }
 
   if (chip_malloc_sys_heap) {

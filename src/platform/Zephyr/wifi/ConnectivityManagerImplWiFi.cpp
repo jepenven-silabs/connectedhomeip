@@ -33,65 +33,65 @@ using namespace ::chip::System;
 namespace chip {
 namespace DeviceLayer {
 
-CHIP_ERROR ConnectivityManagerImplWiFi::InitWiFi()
+CHIP_ERROR ConnectivityManagerImpl::InitWiFi()
 {
     return WiFiManager::Instance().Init();
 }
 
-ConnectivityManager::WiFiStationMode ConnectivityManagerImplWiFi::_GetWiFiStationMode(void)
+ConnectivityManager::WiFiStationMode ConnectivityManagerImpl::_GetWiFiStationMode(void)
 {
-    if (mStationMode != ConnectivityManager::WiFiStationMode::kWiFiStationMode_ApplicationControlled)
+    if (mWiFiStationMode != ConnectivityManager::WiFiStationMode::kWiFiStationMode_ApplicationControlled)
     {
-        mStationMode = (WiFiManager::StationStatus::DISABLED == WiFiManager::Instance().GetStationStatus())
+        mWiFiStationMode = (WiFiManager::StationStatus::DISABLED == WiFiManager::Instance().GetStationStatus())
             ? ConnectivityManager::WiFiStationMode::kWiFiStationMode_Disabled
             : ConnectivityManager::WiFiStationMode::kWiFiStationMode_Enabled;
     }
-    return mStationMode;
+    return mWiFiStationMode;
 }
 
-CHIP_ERROR ConnectivityManagerImplWiFi::_SetWiFiStationMode(ConnectivityManager::WiFiStationMode aMode)
+CHIP_ERROR ConnectivityManagerImpl::_SetWiFiStationMode(ConnectivityManager::WiFiStationMode aMode)
 {
     VerifyOrReturnError(ConnectivityManager::WiFiStationMode::kWiFiStationMode_NotSupported != aMode, CHIP_ERROR_INVALID_ARGUMENT);
 
-    mStationMode = aMode;
+    mWiFiStationMode = aMode;
 
     return CHIP_NO_ERROR;
 }
 
-bool ConnectivityManagerImplWiFi::_IsWiFiStationEnabled(void)
+bool ConnectivityManagerImpl::_IsWiFiStationEnabled(void)
 {
     return (WiFiManager::StationStatus::DISABLED <= WiFiManager::Instance().GetStationStatus());
 }
 
-bool ConnectivityManagerImplWiFi::_IsWiFiStationApplicationControlled(void)
+bool ConnectivityManagerImpl::_IsWiFiStationApplicationControlled(void)
 {
-    return (ConnectivityManager::WiFiStationMode::kWiFiStationMode_ApplicationControlled == mStationMode);
+    return (ConnectivityManager::WiFiStationMode::kWiFiStationMode_ApplicationControlled == mWiFiStationMode);
 }
 
-bool ConnectivityManagerImplWiFi::_IsWiFiStationConnected(void)
+bool ConnectivityManagerImpl::_IsWiFiStationConnected(void)
 {
     return (WiFiManager::StationStatus::CONNECTED == WiFiManager::Instance().GetStationStatus());
 }
 
-System::Clock::Timeout ConnectivityManagerImplWiFi::_GetWiFiStationReconnectInterval(void)
+System::Clock::Timeout ConnectivityManagerImpl::_GetWiFiStationReconnectInterval(void)
 {
     return mWiFiStationReconnectInterval;
 }
 
-CHIP_ERROR ConnectivityManagerImplWiFi::_SetWiFiStationReconnectInterval(System::Clock::Timeout val)
+CHIP_ERROR ConnectivityManagerImpl::_SetWiFiStationReconnectInterval(System::Clock::Timeout val)
 {
     mWiFiStationReconnectInterval = val;
     return CHIP_NO_ERROR;
 }
 
-bool ConnectivityManagerImplWiFi::_IsWiFiStationProvisioned(void)
+bool ConnectivityManagerImpl::_IsWiFiStationProvisioned(void)
 {
     // from Matter perspective `provisioned` means that the supplicant has been provided
     // with SSID and password (doesn't matter if valid or not)
     return (WiFiManager::StationStatus::CONNECTING <= WiFiManager::Instance().GetStationStatus());
 }
 
-void ConnectivityManagerImplWiFi::_ClearWiFiStationProvision(void)
+void ConnectivityManagerImpl::_ClearWiFiStationProvision(void)
 {
     if (_IsWiFiStationProvisioned())
     {
@@ -102,14 +102,21 @@ void ConnectivityManagerImplWiFi::_ClearWiFiStationProvision(void)
     }
 }
 
-void ConnectivityManagerImplWiFi::_OnWiFiStationProvisionChange()
+bool ConnectivityManagerImpl::_CanStartWiFiScan()
+{
+    return (WiFiManager::StationStatus::DISABLED != WiFiManager::Instance().GetStationStatus() &&
+            WiFiManager::StationStatus::SCANNING != WiFiManager::Instance().GetStationStatus() &&
+            WiFiManager::StationStatus::CONNECTING != WiFiManager::Instance().GetStationStatus());
+}
+
+void ConnectivityManagerImpl::_OnWiFiStationProvisionChange()
 {
     // do nothing
 }
 
-void ConnectivityManagerImplWiFi::_OnWiFiScanDone() {}
+void ConnectivityManagerImpl::_OnWiFiScanDone() {}
 
-CHIP_ERROR ConnectivityManagerImplWiFi::_GetAndLogWiFiStatsCounters(void)
+CHIP_ERROR ConnectivityManagerImpl::_GetAndLogWiFiStatsCounters(void)
 {
     // TODO: when network statistics are enabled
     return CHIP_NO_ERROR;

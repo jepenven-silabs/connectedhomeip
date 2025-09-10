@@ -74,7 +74,8 @@ int InitSysHeapMalloc()
 
 // Initialize the heap in the POST_KERNEL phase to make sure that it is ready even before
 // C++ static constructors are called (which happens prior to the APPLICATION initialization phase).
-SYS_INIT(InitSysHeapMalloc, POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
+// TODO FIXME 917 Hack
+SYS_INIT(InitSysHeapMalloc, POST_KERNEL, 38);
 
 namespace chip {
 namespace DeviceLayer {
