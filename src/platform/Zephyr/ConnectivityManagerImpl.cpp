@@ -50,6 +50,8 @@ namespace chip {
 namespace DeviceLayer {
 
 namespace {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 CHIP_ERROR JoinLeaveMulticastGroup(net_if * iface, const Inet::IPAddress & address,
                                    UDPEndPointImplSockets::MulticastOperation operation)
 {
@@ -68,6 +70,7 @@ CHIP_ERROR JoinLeaveMulticastGroup(net_if * iface, const Inet::IPAddress & addre
         return MapOpenThreadError(error);
     }
 #endif
+#pragma GCC diagnostic pop
 
 #if CHIP_DEVICE_CONFIG_ENABLE_WIFI || CHIP_DEVICE_CONFIG_ENABLE_ETHERNET
     const in6_addr in6Addr = InetUtils::ToZephyrAddr(address);

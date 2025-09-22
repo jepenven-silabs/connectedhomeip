@@ -60,6 +60,8 @@ namespace DeviceLayer {
 
 namespace {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static void GetThreadInfo(const struct k_thread * thread, void * user_data)
 {
     size_t unusedStackSize;
@@ -91,6 +93,7 @@ static void GetThreadInfo(const struct k_thread * thread, void * user_data)
     threadMetrics->Next    = *threadMetricsListHead;
     *threadMetricsListHead = threadMetrics;
 }
+#pragma GCC diagnostic pop
 
 BootReasonType DetermineBootReason()
 {
