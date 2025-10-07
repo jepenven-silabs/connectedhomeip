@@ -19,6 +19,10 @@ if LOG
 #    default LOG_MODE_MINIMAL
 #endchoice
 
+choice POSIX_SYSCONF_IMPL_CHOICE
+    default POSIX_SYSCONF_IMPL_MACRO
+endchoice
+
 choice MATTER_LOG_LEVEL_CHOICE
     default MATTER_LOG_LEVEL_DBG
 endchoice

@@ -59,6 +59,12 @@ static_library("Zephyr") {
     "${chip_root}/src/platform/logging:headers",
   ]
 
+    # TODO Add a way to customize Factory Data source
+  sources += [
+    "DeviceInstanceInfoProviderImpl.cpp",
+    "DeviceInstanceInfoProviderImpl.h",
+  ]
+
   if (chip_enable_openthread) {
     sources += [
       "../OpenThread/OpenThreadUtils.cpp",
