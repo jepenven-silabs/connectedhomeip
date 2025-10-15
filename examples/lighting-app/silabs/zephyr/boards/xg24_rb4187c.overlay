@@ -20,11 +20,11 @@
 &flash0 {
 	partitions {
             factory_partition: partition@138000 {
-                    reg = <0x00138000 DT_SIZE_K(4)>;
+                    reg = <0x00138000 DT_SIZE_K(32)>;
             };
 
-            settings_partition: partition@139000 {
-                    reg = <0x00139000 DT_SIZE_K(32)>;
+            settings_partition: partition@140000 {
+                    reg = <0x00140000 DT_SIZE_K(32)>;
             };
 	};
 };
