@@ -353,7 +353,7 @@ else
 
     "$GN_PATH" gen --check --script-executable="$PYTHON_PATH" --fail-on-unused-args --add-export-compile-commands=* --root="$ROOT" --dotfile="$DOTFILE" --args="silabs_board=\"$SILABS_BOARD\" $optArgs" "$BUILD_DIR"
 
-    ninja -C "$BUILD_DIR"/
+    ninja -v -C "$BUILD_DIR"/
 
     #print stats
     arm-none-eabi-size -A "$BUILD_DIR"/*.out

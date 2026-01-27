@@ -179,6 +179,7 @@ silabs_executable("light_switch_app") {
   inputs = [ ldscript ]
 
   ldflags = [ "-T" + rebase_path(ldscript, root_build_dir) ]
+  ldflags += [ "-Wl,-Map=${output_name}.map"]
 
   if (chip_print_memory_usage) {
     ldflags += [
