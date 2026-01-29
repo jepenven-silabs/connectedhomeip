@@ -21,7 +21,7 @@
 
 #if SILABS_LOG_OUT_UART
 #include "uart.h"
-#else
+#elif SILABS_LOG_ENABLED
 #include "SEGGER_RTT.h"
 #endif
 
@@ -41,7 +41,7 @@ extern "C" void chipDie(void)
 
 #if SILABS_LOG_OUT_UART
     uartForceTransmit(reinterpret_cast<const uint8_t *>(msg), sizeof(msg) - 1);
-#else
+#elif SILABS_LOG_ENABLED
     SEGGER_RTT_WriteNoLock(0, msg, sizeof(msg) - 1);
 #endif
 

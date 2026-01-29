@@ -221,7 +221,7 @@ if (wifi_soc != true) {  # CCP board
         ":openthread_core_config_efr32",
         "${openthread_root}/include/openthread:openthread",
         "${openthread_root}/src/core/:libopenthread_core_headers",
-        "${segger_rtt_root}:segger_rtt",
+        # "${segger_rtt_root}:segger_rtt",
       ]
 
       deps = [ "${silabs_sdk_build_root}:silabs_sdk" ]

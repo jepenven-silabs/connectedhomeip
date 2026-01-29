@@ -54,7 +54,7 @@
 #endif
 
 // SEGGER_RTT includes
-#if !SILABS_LOG_OUT_UART
+#if !SILABS_LOG_OUT_UART && SILABS_LOG_ENABLED
 #include "SEGGER_RTT.h"
 #include "SEGGER_RTT_Conf.h"
 #endif

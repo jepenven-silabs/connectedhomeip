@@ -59,6 +59,10 @@ extern "C" {
 #endif
 
 #ifdef SL_CATALOG_SIMPLE_BUTTON_PRESENT
+#undef SL_CATALOG_SIMPLE_BUTTON_PRESENT
+#endif
+
+#ifdef SL_CATALOG_SIMPLE_BUTTON_PRESENT
 #include "sl_simple_button_instances.h"
 #endif
 

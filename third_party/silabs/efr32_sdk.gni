@@ -215,7 +215,7 @@ template("efr32_sdk") {
       "${efr32_sdk_root}/platform/service/interrupt_manager/inc/",
       "${efr32_sdk_root}/platform/service/interrupt_manager/inc/arm/",
       "${efr32_sdk_root}/platform/service/interrupt_manager/src",
-      "${efr32_sdk_root}/platform/service/iostream/inc",
+      # "${efr32_sdk_root}/platform/service/iostream/inc",
       "${efr32_sdk_root}/platform/service/memory_manager/inc",
       "${efr32_sdk_root}/platform/service/memory_manager/src",
       "${efr32_sdk_root}/platform/service/memory_manager/profiler/inc",
@@ -750,8 +750,8 @@ template("efr32_sdk") {
       "${efr32_sdk_root}/platform/service/device_manager/src/sl_device_peripheral.c",
       "${efr32_sdk_root}/platform/service/hfxo_manager/src/sl_hfxo_manager.c",
       "${efr32_sdk_root}/platform/service/interrupt_manager/src/sl_interrupt_manager_cortexm.c",
-      "${efr32_sdk_root}/platform/service/iostream/src/sl_iostream.c",
-      "${efr32_sdk_root}/platform/service/iostream/src/sl_iostream_rtt.c",
+      # "${efr32_sdk_root}/platform/service/iostream/src/sl_iostream.c",
+      # "${efr32_sdk_root}/platform/service/iostream/src/sl_iostream_rtt.c",
       "${efr32_sdk_root}/platform/service/memory_manager/profiler/src/sli_memory_profiler_stubs.c",
       "${efr32_sdk_root}/platform/service/memory_manager/src/sl_memory_manager.c",
       "${efr32_sdk_root}/platform/service/memory_manager/src/sl_memory_manager_cpp.cpp",
@@ -848,7 +848,7 @@ template("efr32_sdk") {
       "${silabs_gen_folder}/autogen/sl_bluetooth.c",
       "${silabs_gen_folder}/autogen/sl_board_default_init.c",
       "${silabs_gen_folder}/autogen/sl_event_handler.c",
-      "${silabs_gen_folder}/autogen/sl_iostream_handles.c",
+      # "${silabs_gen_folder}/autogen/sl_iostream_handles.c",
       "${silabs_gen_folder}/main.c",
     ]
 
@@ -1084,12 +1084,12 @@ template("efr32_sdk") {
 
     public_deps = [
       ":efr32_mbedtls_config",
-      "${segger_rtt_root}:segger_rtt",
-      "${segger_rtt_root}:segger_rtt_printf",
+      # "${segger_rtt_root}:segger_rtt",
+      # "${segger_rtt_root}:segger_rtt_printf",
     ]
 
     if (!sl_uart_log_output) {
-      public_deps += [ "${segger_rtt_root}:segger_rtt_syscalls" ]
+      # public_deps += [ "${segger_rtt_root}:segger_rtt_syscalls" ]
     }
 
     if (defined(invoker.sources)) {
