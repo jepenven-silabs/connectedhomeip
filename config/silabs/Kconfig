@@ -598,6 +598,9 @@ if CHIP_CRYPTO_IMPL_PSA
     config PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_GENERATE
         bool
         default y
+	config PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY
+		bool
+		default y
     config PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128
         bool
         default y
@@ -637,6 +640,9 @@ if CHIP_CRYPTO_IMPL_PSA
     config MBEDTLS_USE_PSA_CRYPTO
         bool
         default y
+	config MBEDTLS_PSA_CRYPTO_CLIENT
+		bool
+		default y
 
 # Extend the maximum number of PSA key slots to fit Matter requirements
 config MBEDTLS_PSA_KEY_SLOT_COUNT

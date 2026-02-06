@@ -22,6 +22,10 @@ choice OPENTHREAD_DEVICE_TYPE
 endchoice
 endif # NET_L2_OPENTHREAD
 
+choice POSIX_AEP_CHOICE
+	default POSIX_AEP_CHOICE_BASE
+endchoice
+
 rsource "../../../../config/silabs/Kconfig.defaults"
 rsource "../../../../config/silabs/Kconfig"
 source "Kconfig.zephyr"

@@ -10,6 +10,11 @@ config CHIP_WIFI
 	default y if BOARD_SIWX917_RB4338A
 	default y if BOARD_SIWX917_RB4342A
 
+config POSIX_C_LIB_EXT
+    default n
+config THREAD_LOCAL_STORAGE
+    default y
+
 # ==============================================================================
 # Logging configuration
 # ==============================================================================
