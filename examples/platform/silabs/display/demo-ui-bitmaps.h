@@ -17,9 +17,6 @@
  *applicable to Source Code.
  *
  ******************************************************************************/
-
-#include <AppConfig.h>
-
 #ifndef SILABS_DEMO_UI_BITMAPS_H
 #define SILABS_DEMO_UI_BITMAPS_H
 

@@ -1,0 +1,13 @@
+# Config options for display test
+# Copyright (c) 2026 Silicon Labs
+
+
+mainmenu "Silabs Matter UI Testbench"
+
+source "Kconfig.zephyr"
+
+config RESET_COUNTER_SW0
+	bool "Reset counter when sw0 is pressed"
+	depends on $(dt_alias_enabled,sw0)
+	select GPIO
+	default y
