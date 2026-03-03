@@ -272,7 +272,7 @@ CHIP_ERROR chip::Zephyr::App::AppTaskBase::Init()
      * Schedule an event to the Matter stack to initialize
      * the ZCL Data Model and start server
      */
-    PlatformMgr().ScheduleWork(InitServer, 0);
+    TEMPORARY_RETURN_IGNORED PlatformMgr().ScheduleWork(InitServer, 0);
 
 #if CONFIG_CHIP_WIFI || CHIP_DEVICE_CONFIG_ENABLE_WPA
     sNetworkCommissioningInstance.Init();
@@ -329,7 +329,7 @@ void chip::Zephyr::App::AppTaskBase::StartCommissioning(intptr_t arg)
     }
     else
     {
-        chip::Server::GetInstance().GetCommissioningWindowManager().OpenBasicCommissioningWindow();
+       TEMPORARY_RETURN_IGNORED chip::Server::GetInstance().GetCommissioningWindowManager().OpenBasicCommissioningWindow();
     }
 }
 
@@ -359,30 +359,30 @@ void chip::Zephyr::App::AppTaskBase::SwitchCommissioningState(intptr_t arg)
     }
     else if (!chip::Server::GetInstance().GetCommissioningWindowManager().IsCommissioningWindowOpen())
     {
-        chip::Server::GetInstance().GetCommissioningWindowManager().OpenBasicCommissioningWindow();
+       TEMPORARY_RETURN_IGNORED chip::Server::GetInstance().GetCommissioningWindowManager().OpenBasicCommissioningWindow();
     }
     else
     {
-        chip::Server::GetInstance().GetCommissioningWindowManager().CloseCommissioningWindow();
+       TEMPORARY_RETURN_IGNORED chip::Server::GetInstance().GetCommissioningWindowManager().CloseCommissioningWindow();
     }
 }
 
 void chip::Zephyr::App::AppTaskBase::StartCommissioningHandler(void)
 {
     /* Publish an event to the Matter task to always set the commissioning state in the Matter task context */
-    PlatformMgr().ScheduleWork(StartCommissioning, 0);
+    TEMPORARY_RETURN_IGNORED PlatformMgr().ScheduleWork(StartCommissioning, 0);
 }
 
 void chip::Zephyr::App::AppTaskBase::StopCommissioningHandler(void)
 {
     /* Publish an event to the Matter task to always set the commissioning state in the Matter task context */
-    PlatformMgr().ScheduleWork(StopCommissioning, 0);
+    TEMPORARY_RETURN_IGNORED PlatformMgr().ScheduleWork(StopCommissioning, 0);
 }
 
 void chip::Zephyr::App::AppTaskBase::SwitchCommissioningStateHandler(void)
 {
     /* Publish an event to the Matter task to always set the commissioning state in the Matter task context */
-    PlatformMgr().ScheduleWork(SwitchCommissioningState, 0);
+    TEMPORARY_RETURN_IGNORED PlatformMgr().ScheduleWork(SwitchCommissioningState, 0);
 }
 
 void chip::Zephyr::App::AppTaskBase::FactoryResetHandler(void)
