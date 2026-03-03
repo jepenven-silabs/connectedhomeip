@@ -53,6 +53,10 @@ endif # LOG
 config SHELL
     default y
 
+
+config SILABS_SISDK_RAIL_MULTIPROTOCOL
+    default y if !CHIP_WIFI
+
 if SHELL
 
 config SHELL_STACK_SIZE
