@@ -193,6 +193,11 @@ typedef struct
 
 } UartTxStruct_t;
 
+constexpr size_t kLogMaxSize = kHeaderSize + SilabsCoreLogs::kTimeStampStringSize + SilabsCoreLogs::kMaxCategoryStrLen +
+                          UART_TX_MAX_BUF_LEN + kEndOfLineSize +
+                          kFooterSize; // Header + Timestamp + Category + Data + \r\n + Footer
+                                      // SILABS_LOG_ENABLED
+
 static osMessageQueueId_t sUartTxQueue;
 static osMessageQueue_t sUartTxQueueStruct;
 uint8_t sUartTxQueueBuffer[UART_MAX_QUEUE_SIZE * sizeof(UartTxStruct_t)];
@@ -209,6 +214,7 @@ static Fifo_t sReceiveFifo;
 static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount);
 #endif // SLI_SI91X_MCU_INTERFACE == 0
 static void uartSendBytes(uint8_t * data, uint16_t length);
+static void uartTaskLessForceTransmit(UartTxStruct_t * uart);
 
 #if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
 static void ensureNullTermination(UartTxStruct_t & bufferStruct)
@@ -523,16 +529,23 @@ int16_t uartLogWrite(const char * log, uint8_t length, uint8_t category, uint64_
     workBuffer.category  = SilabsCoreLogs::LogCategory(category);
     workBuffer.timestamp = timestamp;
 
-    // Don't wait when queue is full. Drop the log and return UART_CONSOLE_ERR
-    if (osMessageQueuePut(sUartTxQueue, &workBuffer, osPriorityNormal, 0) == osOK)
+    // Corner case if the OS is not yet running
+    if(osKernelGetState() != osKernelRunning)
     {
-        return length;
+        uartTransmit(&workBuffer);
     }
     else
     {
-        sMissedLogCount++;
+        // Don't wait when queue is full. Drop the log and return UART_CONSOLE_ERR
+        if (osMessageQueuePut(sUartTxQueue, &workBuffer, osPriorityNormal, 0) == osOK)
+        {
+            return length;
+        }
+        else
+        {
+            sMissedLogCount++;
+        }
     }
-
     return UART_CONSOLE_ERR;
 }
 
@@ -573,9 +586,7 @@ void uartMainLoop(void * args)
     UartTxStruct_t workBuffer;
 #if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
     uint8_t timeStampString[SilabsCoreLogs::kTimeStampStringSize];
-    uint8_t logWorkBuffer[kHeaderSize + SilabsCoreLogs::kTimeStampStringSize + SilabsCoreLogs::kMaxCategoryStrLen +
-                          UART_TX_MAX_BUF_LEN + kEndOfLineSize +
-                          kFooterSize]; // Header + Timestamp + Category + Data + \r\n + Footer
+    uint8_t logWorkBuffer[kLogMaxSize]; // Header + Timestamp + Category + Data + \r\n + Footer
 #endif                                  // SILABS_LOG_ENABLED
 
     while (1)
@@ -583,24 +594,7 @@ void uartMainLoop(void * args)
         osStatus_t eventReceived = osMessageQueueGet(sUartTxQueue, &workBuffer, nullptr, osWaitForever);
         while (eventReceived == osOK)
         {
-            if (workBuffer.isLog)
-            {
-#if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
-                SilabsCoreLogs::FormatTimestamp(reinterpret_cast<char *>(timeStampString), sizeof(timeStampString),
-                                                workBuffer.timestamp);
-                int32_t len = snprintf(reinterpret_cast<char *>(logWorkBuffer), sizeof(logWorkBuffer), "%c%s%s%.*s\r\n%c",
-                                       kLogHeader, timeStampString, SilabsCoreLogs::GetCategoryString(workBuffer.category),
-                                       workBuffer.length, workBuffer.data, kLogFooter);
-                if (len > 0)
-                {
-                    uartSendBytes(logWorkBuffer, static_cast<uint16_t>(len));
-                }
-#endif // SILABS_LOG_ENABLED
-            }
-            else
-            {
-                uartSendBytes(workBuffer.data, workBuffer.length);
-            }
+            uartTransmit(&workBuffer);
             if (sMissedLogCount)
             {
                 // If there are missed logs, log the count
@@ -674,14 +668,59 @@ void uartFlushTxQueue(void)
 
     while (osMessageQueueGet(sUartTxQueue, &workBuffer, nullptr, 0) == osOK)
     {
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
-        ensureNullTermination(workBuffer);
-        Board_UARTPutSTR(workBuffer.data);
-#else
-        UARTDRV_ForceTransmit(vcom_handle, workBuffer.data, workBuffer.length);
-#endif
+        uartTransmit(&workBuffer);
     }
 }
+
+void uartTransmit(UartTxStruct_t * dataStruct)
+{
+    if (uart == NULL)
+    {
+        return;
+    }
+    
+    if(dataStruct.isLog)
+    {
+        #if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
+        uint8_t timeStampString[SilabsCoreLogs::kTimeStampStringSize];
+        uint8_t logWorkBuffer[kLogMaxSize]; // Header + Timestamp + Category + Data + \r\n + Footer
+        SilabsCoreLogs::FormatTimestamp(reinterpret_cast<char *>(timeStampString), sizeof(timeStampString),
+                                        workBuffer.timestamp);
+        int32_t len = snprintf(reinterpret_cast<char *>(logWorkBuffer), sizeof(logWorkBuffer), "%c%s%s%.*s\r\n%c",
+                                kLogHeader, timeStampString, SilabsCoreLogs::GetCategoryString(dataStruct.category),
+                                dataStruct.length, dataStruct.data, kLogFooter);
+        if (len > 0)
+        {
+            if (osKernelGetState() != osKernelRunning)
+            {
+                // either we are in the init phase or something bad happen.
+                uartForceTransmit(logWorkBuffer, static_cast<uint16_t>(len));
+            }
+            else
+            {
+                uartSendBytes(logWorkBuffer, static_cast<uint16_t>(len));
+            }
+        }
+        #endif // SILABS_LOG_ENABLED
+    } 
+    else
+    {
+        if (osKernelGetState() != osKernelRunning)
+        {
+            // either we are in the init phase or something bad happen.
+            uartForceTransmit(dataStruct.data, static_cast<uint16_t>(dataStruct.lenght));
+        }
+        else
+        {
+            uartSendBytes(logWorkBuffer, static_cast<uint16_t>(dataStruct.lenght));
+        }
+    }
+
+
+    
+
+}
+
 
 #if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
 /**
