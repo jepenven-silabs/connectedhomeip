@@ -214,7 +214,7 @@ static Fifo_t sReceiveFifo;
 static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount);
 #endif // SLI_SI91X_MCU_INTERFACE == 0
 static void uartSendBytes(uint8_t * data, uint16_t length);
-static void uartTaskLessForceTransmit(UartTxStruct_t * uart);
+static void uartTransmit(UartTxStruct_t * uart);
 
 #if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
 static void ensureNullTermination(UartTxStruct_t & bufferStruct)
@@ -584,11 +584,6 @@ int16_t uartConsoleRead(char * Buf, uint16_t NbBytesToRead)
 void uartMainLoop(void * args)
 {
     UartTxStruct_t workBuffer;
-#if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
-    uint8_t timeStampString[SilabsCoreLogs::kTimeStampStringSize];
-    uint8_t logWorkBuffer[kLogMaxSize]; // Header + Timestamp + Category + Data + \r\n + Footer
-#endif                                  // SILABS_LOG_ENABLED
-
     while (1)
     {
         osStatus_t eventReceived = osMessageQueueGet(sUartTxQueue, &workBuffer, nullptr, osWaitForever);
@@ -674,27 +669,27 @@ void uartFlushTxQueue(void)
 
 void uartTransmit(UartTxStruct_t * dataStruct)
 {
-    if (uart == NULL)
+    if (dataStruct == nullptr || dataStruct->length == 0)
     {
         return;
     }
     
-    if(dataStruct.isLog)
+    if(dataStruct->isLog)
     {
         #if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
         uint8_t timeStampString[SilabsCoreLogs::kTimeStampStringSize];
         uint8_t logWorkBuffer[kLogMaxSize]; // Header + Timestamp + Category + Data + \r\n + Footer
         SilabsCoreLogs::FormatTimestamp(reinterpret_cast<char *>(timeStampString), sizeof(timeStampString),
-                                        workBuffer.timestamp);
+                                        dataStruct->timestamp);
         int32_t len = snprintf(reinterpret_cast<char *>(logWorkBuffer), sizeof(logWorkBuffer), "%c%s%s%.*s\r\n%c",
-                                kLogHeader, timeStampString, SilabsCoreLogs::GetCategoryString(dataStruct.category),
-                                dataStruct.length, dataStruct.data, kLogFooter);
+                                kLogHeader, timeStampString, SilabsCoreLogs::GetCategoryString(dataStruct->category),
+                                dataStruct->length, dataStruct->data, kLogFooter);
         if (len > 0)
         {
             if (osKernelGetState() != osKernelRunning)
             {
                 // either we are in the init phase or something bad happen.
-                uartForceTransmit(logWorkBuffer, static_cast<uint16_t>(len));
+                uartForceTransmit(reinterpret_cast<const char*>(logWorkBuffer), static_cast<uint16_t>(len));
             }
             else
             {
@@ -708,11 +703,11 @@ void uartTransmit(UartTxStruct_t * dataStruct)
         if (osKernelGetState() != osKernelRunning)
         {
             // either we are in the init phase or something bad happen.
-            uartForceTransmit(dataStruct.data, static_cast<uint16_t>(dataStruct.lenght));
+            uartForceTransmit(reinterpret_cast<const char*>(dataStruct->data), static_cast<uint16_t>(dataStruct->length));
         }
         else
         {
-            uartSendBytes(logWorkBuffer, static_cast<uint16_t>(dataStruct.lenght));
+            uartSendBytes(dataStruct->data, static_cast<uint16_t>(dataStruct->length));
         }
     }
 
