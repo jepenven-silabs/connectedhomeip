@@ -25,6 +25,12 @@
 
 #include <platform/silabs/Logging.h>
 
+// Ugly fix but seems that this defines only happens in 917 specific builds
+#ifndef SLI_SI91X_MCU_INTERFACE
+#define SLI_SI91X_MCU_INTERFACE 0
+#endif
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -180,7 +186,7 @@ constexpr osThreadAttr_t kUartTaskAttr = {
 };     // Must be above Matter Task priority
 
 static uint32_t sMissedLogCount = 0; // Count of logs that were not sent to the UART due to queue full
-
+static bool initInProgress = true; // To prevent having a huge buffer for Init sequence
 namespace SilabsCoreLogs = chip::Logging::Platform;
 // sizeof struct on arm is 4+8 +sizeof(data) so 12 + number of character in the string
 typedef struct
@@ -214,7 +220,7 @@ static Fifo_t sReceiveFifo;
 static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount);
 #endif // SLI_SI91X_MCU_INTERFACE == 0
 static void uartSendBytes(uint8_t * data, uint16_t length);
-static void uartTransmit(UartTxStruct_t * uart);
+static void uartTransmit(UartTxStruct_t * uart, bool force = false);
 
 #if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
 static void ensureNullTermination(UartTxStruct_t & bufferStruct)
@@ -357,7 +363,7 @@ void uartConsoleInit(void)
     VerifyOrDie(sUartTaskHandle != nullptr);
     VerifyOrDie(sUartTxQueue != nullptr);
 
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE == 0
+#if (defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE == 0) || (!defined(SLI_SI91X_MCU_INTERFACE))
 #ifdef SL_BOARD_NAME
     sl_board_enable_vcom();
 #endif
@@ -510,6 +516,11 @@ int16_t uartLogWrite(const char * log, uint8_t length, uint8_t category, uint64_
     {
         return UART_CONSOLE_ERR;
     }
+
+    
+
+
+
     bool truncated = false;
     if (length > UART_TX_MAX_BUF_LEN)
     {
@@ -529,23 +540,37 @@ int16_t uartLogWrite(const char * log, uint8_t length, uint8_t category, uint64_
     workBuffer.category  = SilabsCoreLogs::LogCategory(category);
     workBuffer.timestamp = timestamp;
 
-    // Corner case if the OS is not yet running
-    if(osKernelGetState() != osKernelRunning)
+    // Corner case here : During Init a task is created with max priority and fills the buffer queue
+    // Solution check if we are in the Init phase. If so force transmit everything 
+    if (initInProgress)
     {
+        static osThreadId_t mainThreadId = NULL; 
+
+        if (mainThreadId == NULL) {
+            osThreadId_t threadId = osThreadGetId();    
+            const char* name = osThreadGetName(threadId);
+            if (strcmp(name, "main") == 0) {
+                mainThreadId = threadId;
+            }
+        }
+        else if (osThreadGetId() != mainThreadId)
+        {
+            initInProgress = false; // We are no longer in the init phase after the main thread has been deleted
+        }
         uartTransmit(&workBuffer);
+        return length;
+    }
+            
+    // Don't wait when queue is full. Drop the log and return UART_CONSOLE_ERR
+    if (osMessageQueuePut(sUartTxQueue, &workBuffer, osPriorityNormal, 0) == osOK)
+    {
+        return length;
     }
     else
     {
-        // Don't wait when queue is full. Drop the log and return UART_CONSOLE_ERR
-        if (osMessageQueuePut(sUartTxQueue, &workBuffer, osPriorityNormal, 0) == osOK)
-        {
-            return length;
-        }
-        else
-        {
-            sMissedLogCount++;
-        }
+        sMissedLogCount++;
     }
+    
     return UART_CONSOLE_ERR;
 }
 
@@ -663,11 +688,11 @@ void uartFlushTxQueue(void)
 
     while (osMessageQueueGet(sUartTxQueue, &workBuffer, nullptr, 0) == osOK)
     {
-        uartTransmit(&workBuffer);
+        uartTransmit(&workBuffer, true);
     }
 }
 
-void uartTransmit(UartTxStruct_t * dataStruct)
+void uartTransmit(UartTxStruct_t * dataStruct, bool force)
 {
     if (dataStruct == nullptr || dataStruct->length == 0)
     {
@@ -686,7 +711,7 @@ void uartTransmit(UartTxStruct_t * dataStruct)
                                 dataStruct->length, dataStruct->data, kLogFooter);
         if (len > 0)
         {
-            if (osKernelGetState() != osKernelRunning)
+            if (osKernelGetState() != osKernelRunning || initInProgress || force)
             {
                 // either we are in the init phase or something bad happen.
                 uartForceTransmit(reinterpret_cast<const char*>(logWorkBuffer), static_cast<uint16_t>(len));
@@ -700,7 +725,7 @@ void uartTransmit(UartTxStruct_t * dataStruct)
     } 
     else
     {
-        if (osKernelGetState() != osKernelRunning)
+        if (osKernelGetState() != osKernelRunning || initInProgress || force)
         {
             // either we are in the init phase or something bad happen.
             uartForceTransmit(reinterpret_cast<const char*>(dataStruct->data), static_cast<uint16_t>(dataStruct->length));
@@ -709,11 +734,7 @@ void uartTransmit(UartTxStruct_t * dataStruct)
         {
             uartSendBytes(dataStruct->data, static_cast<uint16_t>(dataStruct->length));
         }
-    }
-
-
-    
-
+    }  
 }
 
 
