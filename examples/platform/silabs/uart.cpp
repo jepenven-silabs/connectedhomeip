@@ -21,6 +21,7 @@
 #endif
 #include <cmsis_os2.h>
 #include <platform/CHIPDeviceLayer.h>
+#include <platform/silabs/platformAbstraction/SilabsPlatform.h>
 #include <sl_cmsis_os2_common.h>
 
 #include <platform/silabs/Logging.h>
@@ -40,105 +41,6 @@ extern "C" {
 #include <string.h>
 
 #define UART_CONSOLE_ERR -1 // Negative value in case of UART Console action failed. Triggers a failure for PW_RPC
-#ifdef CHIP_SHELL_MAX_LINE_SIZE
-#define MAX_BUFFER_SIZE CHIP_SHELL_MAX_LINE_SIZE
-#else
-#define MAX_BUFFER_SIZE 256
-#endif
-#define MAX_DMA_BUFFER_SIZE (MAX_BUFFER_SIZE / 2)
-
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
-#include "USART.h"
-#if defined(SL_SI91X_BOARD_INIT)
-#include "rsi_board.h"
-#endif // SL_SI91X_BOARD_INIT
-#include "rsi_debug.h"
-#include "rsi_rom_egpio.h"
-#else // For EFR32
-#if (_SILICON_LABS_32B_SERIES < 3)
-#include "em_core.h"
-#include "em_usart.h"
-#else
-#include "sl_hal_eusart.h"
-#endif //_SILICON_LABS_32B_SERIES
-#include "uartdrv.h"
-#ifdef SL_BOARD_NAME
-#include "sl_board_control.h"
-#endif
-#include "sl_uartdrv_instances.h"
-#if defined(SL_WIFI) && SL_WIFI
-#include <platform/silabs/wifi/ncp/spi_multiplex.h>
-#endif // SL_WIFI
-#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
-#include "sl_uartdrv_eusart_vcom_config.h"
-#endif
-#ifdef SL_CATALOG_UARTDRV_USART_PRESENT
-#include "sl_uartdrv_usart_vcom_config.h"
-#endif // SL_CATALOG_UARTDRV_USART_PRESENT
-
-#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
-#include "sl_power_manager.h"
-#endif
-
-#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
-#define HELPER1(x) EUSART##x##_RX_IRQn
-#else
-#define HELPER1(x) USART##x##_RX_IRQn
-#endif
-
-#define HELPER2(x) HELPER1(x)
-
-#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
-#define HELPER3(x) EUSART##x##_RX_IRQHandler
-#else
-#define HELPER3(x) USART##x##_RX_IRQHandler
-#endif
-
-#define HELPER4(x) HELPER3(x)
-
-// On MG24 boards VCOM runs on the EUSART device, MG12 uses the UART device
-#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
-#define USART_IRQ HELPER2(SL_UARTDRV_EUSART_VCOM_PERIPHERAL_NO)
-#define USART_IRQHandler HELPER4(SL_UARTDRV_EUSART_VCOM_PERIPHERAL_NO)
-#define vcom_handle sl_uartdrv_eusart_vcom_handle
-
-#if (_SILICON_LABS_32B_SERIES < 3)
-#define EUSART_INT_ENABLE EUSART_IntEnable
-#define EUSART_INT_DISABLE EUSART_IntDisable
-#define EUSART_INT_CLEAR EUSART_IntClear
-#define EUSART_CLEAR_RX(x) (void) x
-#define EUSART_GET_PENDING_INT EUSART_IntGet
-#define EUSART_ENABLE(eusart) EUSART_Enable(eusart, eusartEnable)
-#else
-#define EUSART_INT_ENABLE sl_hal_eusart_enable_interrupts
-#define EUSART_INT_DISABLE sl_hal_eusart_disable_interrupts
-#define EUSART_INT_SET sl_hal_eusart_set_interrupts
-#define EUSART_INT_CLEAR sl_hal_eusart_clear_interrupts
-#define EUSART_CLEAR_RX sl_hal_eusart_clear_rx
-#define EUSART_GET_PENDING_INT sl_hal_eusart_get_pending_interrupts
-#define EUSART_ENABLE(eusart)                                                                                                      \
-    {                                                                                                                              \
-        sl_hal_eusart_enable(eusart);                                                                                              \
-        sl_hal_eusart_enable_tx(eusart);                                                                                           \
-        sl_hal_eusart_enable_rx(eusart);                                                                                           \
-    }
-#endif //_SILICON_LABS_32B_SERIES
-
-#else
-#define USART_IRQ HELPER2(SL_UARTDRV_USART_VCOM_PERIPHERAL_NO)
-#define USART_IRQHandler HELPER4(SL_UARTDRV_USART_VCOM_PERIPHERAL_NO)
-#define vcom_handle sl_uartdrv_usart_vcom_handle
-#endif // SL_CATALOG_UARTDRV_EUSART_PRESENT
-
-namespace {
-// In order to reduce the probability of data loss during the dmaFull callback handler we use
-// two duplicate receive buffers so we can always have one "active" receive queue.
-uint8_t sRxDmaBuffer[MAX_DMA_BUFFER_SIZE]  = { 0 };
-uint8_t sRxDmaBuffer2[MAX_DMA_BUFFER_SIZE] = { 0 };
-uint16_t lastCount                         = 0; // Nb of bytes already processed from the active dmaBuffer
-} // namespace
-
-#endif // SLI_SI91X_MCU_INTERFACE
 
 typedef struct
 {
@@ -216,27 +118,8 @@ constexpr osMessageQueueAttr_t kUartTxQueueAttr = { .cb_mem  = &sUartTxQueueStru
 static uint8_t sRxFifoBuffer[MAX_BUFFER_SIZE];
 static Fifo_t sReceiveFifo;
 
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE == 0
-static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount);
-#endif // SLI_SI91X_MCU_INTERFACE == 0
 static void uartSendBytes(uint8_t * data, uint16_t length);
 static void uartTransmit(UartTxStruct_t * uart, bool force = false);
-
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
-static void ensureNullTermination(UartTxStruct_t & bufferStruct)
-{
-    if (bufferStruct.length > 0 && bufferStruct.length < MATTER_ARRAY_SIZE(bufferStruct.data) &&
-        bufferStruct.data[bufferStruct.length - 1] != '\0')
-    {
-        bufferStruct.data[bufferStruct.length] = '\0';
-    }
-    else
-    {
-        uint16_t nullPos           = (bufferStruct.length == 0) ? 0 : MATTER_ARRAY_SIZE(bufferStruct.data) - 1;
-        bufferStruct.data[nullPos] = '\0';
-    }
-}
-#endif
 
 static bool InitFifo(Fifo_t * fifo, uint8_t * pDataBuffer, uint16_t bufferSize)
 {
@@ -341,6 +224,28 @@ static uint16_t RetrieveFromFifo(Fifo_t * fifo, uint8_t * pData, uint16_t SizeTo
 }
 
 /*
+ *   @brief Cache received bytes into the receive fifo.
+ *          Used by platform-specific UART implementations to store incoming data.
+ */
+void uartCacheRxBytes(uint8_t * data, uint16_t length)
+{
+    if (RemainingSpace(&sReceiveFifo) >= length)
+    {
+        WriteToFifo(&sReceiveFifo, data, length);
+    }
+}
+
+void uartSignalTxComplete(void)
+{
+    osThreadFlagsSet(sUartTaskHandle, kUartTxCompleteFlag);
+}
+
+void uartWaitForTxComplete(void)
+{
+    osThreadFlagsWait(kUartTxCompleteFlag, osFlagsWaitAny, osWaitForever);
+}
+
+/*
  *   @brief Init the the UART for serial communication, Start DMA reception
  *          and init Fifo to handle the received data from this uart
  *
@@ -363,106 +268,8 @@ void uartConsoleInit(void)
     VerifyOrDie(sUartTaskHandle != nullptr);
     VerifyOrDie(sUartTxQueue != nullptr);
 
-#if (defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE == 0) || (!defined(SLI_SI91X_MCU_INTERFACE))
-#ifdef SL_BOARD_NAME
-    sl_board_enable_vcom();
-#endif
-
-    // Activate 2 dma queues to always have one active
-    UARTDRV_Receive(vcom_handle, sRxDmaBuffer, MAX_DMA_BUFFER_SIZE, UART_rx_callback);
-    UARTDRV_Receive(vcom_handle, sRxDmaBuffer2, MAX_DMA_BUFFER_SIZE, UART_rx_callback);
-
-    // Enable USART0/EUSART0 interrupt to wake OT task when data arrives
-    NVIC_ClearPendingIRQ(USART_IRQ);
-    NVIC_EnableIRQ(USART_IRQ);
-
-#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
-    // Clear previous RX interrupts
-    EUSART_INT_CLEAR(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, (EUSART_IF_RXFL | EUSART_IF_RXOF));
-    EUSART_CLEAR_RX(SL_UARTDRV_EUSART_VCOM_PERIPHERAL);
-
-    // Enable RX interrupts
-    EUSART_INT_ENABLE(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, EUSART_IF_RXFL);
-
-    // Enable EUSART
-    EUSART_ENABLE(SL_UARTDRV_EUSART_VCOM_PERIPHERAL);
-#else
-    USART_IntEnable(SL_UARTDRV_USART_VCOM_PERIPHERAL, USART_IF_RXDATAV);
-#endif // SL_CATALOG_UARTDRV_EUSART_PRESENT
-#endif // SLI_SI91X_MCU_INTERFACE == 0
+    chip::DeviceLayer::Silabs::GetPlatform().UartConsoleInitHw();
 }
-
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
-void cache_uart_rx_data(char character)
-{
-    if (RemainingSpace(&sReceiveFifo) >= 1)
-    {
-        WriteToFifo(&sReceiveFifo, (uint8_t *) &character, 1);
-    }
-#ifdef ENABLE_CHIP_SHELL
-    chip::NotifyShellProcess();
-#endif // ENABLE_CHIP_SHELL
-}
-#endif // SLI_SI91X_MCU_INTERFACE
-
-#if !defined(SLI_SI91X_MCU_INTERFACE) || !SLI_SI91X_MCU_INTERFACE
-// For EFR32
-void USART_IRQHandler(void)
-{
-#ifdef ENABLE_CHIP_SHELL
-    chip::NotifyShellProcess();
-#elif !defined(PW_RPC_ENABLED) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
-    otSysEventSignalPending();
-#endif
-#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
-    // disable RXFL IRQ until data read by uartConsoleRead
-    EUSART_INT_DISABLE(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, EUSART_IF_RXFL);
-    EUSART_INT_CLEAR(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, EUSART_IF_RXFL);
-
-    if (EUSART_GET_PENDING_INT(SL_UARTDRV_EUSART_VCOM_PERIPHERAL) & EUSART_IF_RXOF)
-    {
-        EUSART_CLEAR_RX(SL_UARTDRV_EUSART_VCOM_PERIPHERAL);
-    }
-#endif
-}
-
-/**
- * @brief Transmit complete callback
- *
- * @param handle
- * @param transferStatus
- * @param data
- * @param transferCount
- */
-void UART_tx_callback(struct UARTDRV_HandleData * handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount)
-{
-    // This function may be called from Interrupt Service Routines.
-    osThreadFlagsSet(sUartTaskHandle, kUartTxCompleteFlag);
-}
-
-/*
- *   @brief Callback triggered when a UARTDRV DMA buffer is full
- */
-static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount)
-{
-    (void) transferStatus;
-
-    uint8_t writeSize = (transferCount - lastCount);
-    if (RemainingSpace(&sReceiveFifo) >= writeSize)
-    {
-        WriteToFifo(&sReceiveFifo, data + lastCount, writeSize);
-        lastCount = 0;
-    }
-
-    UARTDRV_Receive(vcom_handle, data, transferCount, UART_rx_callback);
-
-#ifdef ENABLE_CHIP_SHELL
-    chip::NotifyShellProcess();
-#elif !defined(PW_RPC_ENABLED) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
-    otSysEventSignalPending();
-#endif
-}
-#endif // SLI_SI91X_MCU_INTERFACE == 0
 
 /**
  * @brief Read the data available from the console Uart
@@ -486,7 +293,7 @@ int16_t uartConsoleWrite(const char * Buf, uint16_t BufLength)
 
 #ifdef PW_RPC_ENABLED
     // Pigweed Logger is already thread safe.
-    UARTDRV_ForceTransmit(vcom_handle, (uint8_t *) Buf, BufLength);
+    uartForceTransmit(Buf, BufLength);
     return BufLength;
 #endif
 
@@ -581,27 +388,12 @@ int16_t uartLogWrite(const char * log, uint8_t length, uint8_t category, uint64_
  */
 int16_t uartConsoleRead(char * Buf, uint16_t NbBytesToRead)
 {
-#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
-    EUSART_INT_ENABLE(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, EUSART_IF_RXFL);
-#endif
+    chip::DeviceLayer::Silabs::GetPlatform().UartFlushRxBuffer();
 
     if (Buf == NULL || NbBytesToRead < 1)
     {
         return UART_CONSOLE_ERR;
     }
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE == 0
-    uint8_t * data;
-    if (NbBytesToRead > AvailableDataCount(&sReceiveFifo))
-    {
-        UARTDRV_Count_t count, remaining;
-        // Not enough data available in the fifo for the read size request
-        // If there is data available in dma buffer, get it now.
-        CORE_ATOMIC_SECTION(UARTDRV_GetReceiveStatus(vcom_handle, &data, &count, &remaining); if (count > lastCount) {
-            WriteToFifo(&sReceiveFifo, data + lastCount, count - lastCount);
-            lastCount = count;
-        })
-    }
-#endif // SLI_SI91X_MCU_INTERFACE == 0
 
     return (int16_t) RetrieveFromFifo(&sReceiveFifo, (uint8_t *) Buf, NbBytesToRead);
 }
@@ -629,9 +421,7 @@ void uartMainLoop(void * args)
 }
 
 /**
- * @brief Send Bytes to UART. This blocks the UART task.
- *
- * @param bufferStruct reference to the UartTxStruct_t containing the data
+ * @brief Send Bytes to UART. Delegates to platform-specific implementation.
  */
 void uartSendBytes(uint8_t * data, uint16_t length)
 {
@@ -639,42 +429,7 @@ void uartSendBytes(uint8_t * data, uint16_t length)
     {
         return;
     }
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
-    // Not optimal, waiting for a more efficient way to send logs over UART on SI91x
-    //
-    // Board_UARTPutSTR(data) does the exact same thing and is not compatible with
-    // the Silabs Matter console.
-    for (uint8_t i = 0; i < length; i++)
-    {
-        Board_UARTPutChar(data[i]);
-    }
-#else
-#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
-    sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
-#endif // SL_CATALOG_POWER_MANAGER_PRESENT
-
-#if defined(SL_UARTCTRL_MUX) && SL_UARTCTRL_MUX
-    sl_wfx_host_pre_uart_transfer();
-#endif // SL_UARTCTRL_MUX
-
-#if (defined(EFR32MG24) && defined(WF200_WIFI))
-    // Blocking transmit for the MG24 + WF200 since UART TX is multiplexed with
-    // WF200 SPI IRQ
-    UARTDRV_ForceTransmit(vcom_handle, data, length);
-#else
-    // Non Blocking Transmit
-    UARTDRV_Transmit(vcom_handle, data, length, UART_tx_callback);
-    osThreadFlagsWait(kUartTxCompleteFlag, osFlagsWaitAny, osWaitForever);
-#endif /* EFR32MG24 && WF200_WIFI */
-
-#if defined(SL_UARTCTRL_MUX) && SL_UARTCTRL_MUX
-    sl_wfx_host_post_uart_transfer();
-#endif // SL_UARTCTRL_MUX
-
-#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
-    sl_power_manager_remove_em_requirement(SL_POWER_MANAGER_EM1);
-#endif // SL_CATALOG_POWER_MANAGER_PRESENT
-#endif // SLI_SI91X_MCU_INTERFACE
+    chip::DeviceLayer::Silabs::GetPlatform().UartSendBytes(data, length);
 }
 
 /**
@@ -734,58 +489,13 @@ void uartTransmit(UartTxStruct_t * dataStruct, bool force)
         {
             uartSendBytes(dataStruct->data, static_cast<uint16_t>(dataStruct->length));
         }
-    }  
-}
-
-
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
-/**
- * @brief Blocking UART transmit using direct register polling.
- *
- * This function bypasses the interrupt-driven UART driver and writes directly
- * to the UART registers. It is intended ONLY for use in crash/failure scenarios
- * (e.g., chipDie) where interrupts may be disabled or the system is in an
- * undefined state.
- *
- * @param data   Pointer to data buffer to transmit
- * @param length Number of bytes to transmit
- */
-static void uartBlockingTransmit(const char * data, uint16_t length)
-{
-    VerifyOrReturn(data != nullptr && length > 0);
-
-    // Matter always uses ULP_UART for debug output on SiWx917
-    USART0_Type * uart = ULP_UART;
-    VerifyOrReturn(uart != nullptr);
-
-    for (uint16_t i = 0; i < length; i++)
-    {
-        // Wait for Transmit Holding Register to be empty (LSR bit 5)
-        while (!(uart->LSR_b.THRE))
-        {
-            // Busy wait - no timeout since we're in a crash state anyway
-        }
-        // Write byte to Transmit Holding Register
-        uart->THR = data[i];
-    }
-
-    // Wait for transmitter to fully complete (LSR bit 6 - TEMT)
-    while (!(uart->LSR_b.TEMT))
-    {
-        // Busy wait for last byte to finish transmitting
     }
 }
-#endif // SLI_SI91X_MCU_INTERFACE
 
 void uartForceTransmit(const char * data, uint16_t length)
 {
     VerifyOrReturn(data != nullptr && length > 0);
-
-#if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE
-    uartBlockingTransmit(data, length);
-#else
-    UARTDRV_ForceTransmit(vcom_handle, reinterpret_cast<uint8_t *>(const_cast<char *>(data)), length);
-#endif
+    chip::DeviceLayer::Silabs::GetPlatform().UartForceTransmit(data, length);
 }
 
 #ifdef __cplusplus

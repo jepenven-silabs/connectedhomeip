@@ -53,6 +53,12 @@ extern "C" {
 #include "sl_si91x_button_pin_config.h"
 #endif // SL_CATALOG_SIMPLE_BUTTON_PRESENT
 
+#if SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
+#include "USART.h"
+#include "rsi_debug.h"
+#include "rsi_rom_egpio.h"
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
+
 #ifdef ENABLE_WSTK_LEDS
 #if (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1)
 #include "sl_si91x_rgb_led.h"
@@ -77,7 +83,10 @@ uint8_t ledPinArray[SL_LED_COUNT] = { SL_LED_LED0_PIN, SL_LED_LED1_PIN };
 
 #if SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
 #include "uart.h"
+#ifdef ENABLE_CHIP_SHELL
+#include "MatterShell.h" // nogncheck
 #endif
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
 
 namespace chip {
 namespace DeviceLayer {
@@ -292,6 +301,78 @@ CHIP_ERROR SilabsPlatform::FlashWritePage(uint32_t addr, const uint8_t * data, s
 {
     rsi_flash_write((uint32_t *) addr, (unsigned char *) data, size);
     return CHIP_NO_ERROR;
+}
+
+// UART hardware-specific implementations
+#if SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
+
+extern "C" void cache_uart_rx_data(char character)
+{
+    uartCacheRxBytes(reinterpret_cast<uint8_t *>(&character), 1);
+#ifdef ENABLE_CHIP_SHELL
+    chip::NotifyShellProcess();
+#endif // ENABLE_CHIP_SHELL
+}
+
+/**
+ * @brief Blocking UART transmit using direct register polling.
+ *
+ * This function bypasses the interrupt-driven UART driver and writes directly
+ * to the UART registers. It is intended ONLY for use in crash/failure scenarios
+ * (e.g., chipDie) where interrupts may be disabled or the system is in an
+ * undefined state.
+ */
+static void uartBlockingTransmit(const char * data, uint16_t length)
+{
+    VerifyOrReturn(data != nullptr && length > 0);
+
+    // Matter always uses ULP_UART for debug output on SiWx917
+    USART0_Type * uart = ULP_UART;
+    VerifyOrReturn(uart != nullptr);
+
+    for (uint16_t i = 0; i < length; i++)
+    {
+        // Wait for Transmit Holding Register to be empty (LSR bit 5)
+        while (!(uart->LSR_b.THRE))
+        {
+        }
+        // Write byte to Transmit Holding Register
+        uart->THR = data[i];
+    }
+
+    // Wait for transmitter to fully complete (LSR bit 6 - TEMT)
+    while (!(uart->LSR_b.TEMT))
+    {
+    }
+}
+
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
+
+void SilabsPlatform::UartConsoleInitHw(void)
+{
+    // No hardware-specific UART init needed for SI91X
+}
+
+void SilabsPlatform::UartSendBytes(uint8_t * data, uint16_t length)
+{
+#if SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
+    for (uint16_t i = 0; i < length; i++)
+    {
+        Board_UARTPutChar(data[i]);
+    }
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
+}
+
+void SilabsPlatform::UartForceTransmit(const char * data, uint16_t length)
+{
+#if SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
+    uartBlockingTransmit(data, length);
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL
+}
+
+void SilabsPlatform::UartFlushRxBuffer(void)
+{
+    // SI91X pushes data via cache_uart_rx_data from interrupts, no flush needed
 }
 
 } // namespace Silabs

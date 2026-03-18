@@ -26,6 +26,13 @@ constexpr uint8_t kHeaderSize    = 1;
 constexpr uint8_t kFooterSize    = 1;
 constexpr uint8_t kEndOfLineSize = 2; // \r\n
 
+#ifdef CHIP_SHELL_MAX_LINE_SIZE
+#define MAX_BUFFER_SIZE CHIP_SHELL_MAX_LINE_SIZE
+#else
+#define MAX_BUFFER_SIZE 256
+#endif
+#define MAX_DMA_BUFFER_SIZE (MAX_BUFFER_SIZE / 2)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,6 +45,11 @@ void uartFlushTxQueue(void);
 void uartForceTransmit(const char * data, uint16_t length);
 
 void uartMainLoop(void * args);
+
+// Platform abstraction helpers for hardware-specific UART implementations
+void uartCacheRxBytes(uint8_t * data, uint16_t length);
+void uartSignalTxComplete(void);
+void uartWaitForTxComplete(void);
 
 // Implemented by in openthread code
 #ifndef PW_RPC_ENABLED

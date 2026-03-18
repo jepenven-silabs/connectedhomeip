@@ -65,6 +65,12 @@ public:
     CHIP_ERROR GetLedColor(uint8_t led, uint16_t & r, uint16_t & g, uint16_t & b) override;
 #endif // (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED)
 
+    // UART
+    void UartSendBytes(uint8_t * data, uint16_t length) override;
+    void UartForceTransmit(const char * data, uint16_t length) override;
+    void UartConsoleInitHw(void) override;
+    void UartFlushRxBuffer(void) override;
+
     CHIP_ERROR FlashInit() override;
     CHIP_ERROR FlashErasePage(uint32_t addr) override;
     CHIP_ERROR FlashWritePage(uint32_t addr, const uint8_t * data, size_t size) override;

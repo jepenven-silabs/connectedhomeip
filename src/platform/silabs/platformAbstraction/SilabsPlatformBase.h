@@ -65,6 +65,12 @@ public:
     virtual CHIP_ERROR FlashErasePage(uint32_t addr) { return CHIP_ERROR_NOT_IMPLEMENTED; }
     virtual CHIP_ERROR FlashWritePage(uint32_t addr, const uint8_t * data, size_t size) { return CHIP_ERROR_NOT_IMPLEMENTED; }
 
+    // UART
+    virtual void UartSendBytes(uint8_t * data, uint16_t length) {}
+    virtual void UartForceTransmit(const char * data, uint16_t length) {}
+    virtual void UartConsoleInitHw(void) {}
+    virtual void UartFlushRxBuffer(void) {}
+
     // Watchdog
     virtual void WatchdogInit(){};
     virtual void WatchdogFeed(){};

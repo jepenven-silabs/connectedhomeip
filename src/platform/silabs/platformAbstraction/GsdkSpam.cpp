@@ -88,6 +88,29 @@ extern "C" {
 #include "sl_iostream_stdio.h"
 #endif // SL_CATALOG_CLI_PRESENT
 #include "uart.h"
+#if (_SILICON_LABS_32B_SERIES < 3)
+#include "em_core.h"
+#include "em_usart.h"
+#else
+#include "sl_hal_eusart.h"
+#endif //_SILICON_LABS_32B_SERIES
+#include "uartdrv.h"
+#ifdef SL_BOARD_NAME
+#include "sl_board_control.h"
+#endif
+#include "sl_uartdrv_instances.h"
+#if defined(SL_WIFI) && SL_WIFI
+#include <platform/silabs/wifi/ncp/spi_multiplex.h>
+#endif // SL_WIFI
+#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
+#include "sl_uartdrv_eusart_vcom_config.h"
+#endif
+#ifdef SL_CATALOG_UARTDRV_USART_PRESENT
+#include "sl_uartdrv_usart_vcom_config.h"
+#endif // SL_CATALOG_UARTDRV_USART_PRESENT
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+#include "sl_power_manager.h"
+#endif
 #endif // SILABS_LOG_OUT_UART || (defined(ENABLE_CHIP_SHELL) && ENABLE_CHIP_SHELL) || defined(CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI)
        // && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
 
@@ -99,6 +122,74 @@ extern "C" {
 #if SILABS_LOG_ENABLED
 #include "silabs_utils.h"
 #endif
+
+// UART hardware macros and definitions
+#if SILABS_LOG_OUT_UART || (defined(ENABLE_CHIP_SHELL) && ENABLE_CHIP_SHELL) ||                                                    \
+    defined(CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+
+#ifdef ENABLE_CHIP_SHELL
+#include "MatterShell.h" // nogncheck
+#endif
+
+#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
+#define HELPER1(x) EUSART##x##_RX_IRQn
+#else
+#define HELPER1(x) USART##x##_RX_IRQn
+#endif
+
+#define HELPER2(x) HELPER1(x)
+
+#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
+#define HELPER3(x) EUSART##x##_RX_IRQHandler
+#else
+#define HELPER3(x) USART##x##_RX_IRQHandler
+#endif
+
+#define HELPER4(x) HELPER3(x)
+
+// On MG24 boards VCOM runs on the EUSART device, MG12 uses the UART device
+#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
+#define USART_IRQ HELPER2(SL_UARTDRV_EUSART_VCOM_PERIPHERAL_NO)
+#define USART_IRQHandler HELPER4(SL_UARTDRV_EUSART_VCOM_PERIPHERAL_NO)
+#define vcom_handle sl_uartdrv_eusart_vcom_handle
+
+#if (_SILICON_LABS_32B_SERIES < 3)
+#define EUSART_INT_ENABLE EUSART_IntEnable
+#define EUSART_INT_DISABLE EUSART_IntDisable
+#define EUSART_INT_CLEAR EUSART_IntClear
+#define EUSART_CLEAR_RX(x) (void) x
+#define EUSART_GET_PENDING_INT EUSART_IntGet
+#define EUSART_ENABLE(eusart) EUSART_Enable(eusart, eusartEnable)
+#else
+#define EUSART_INT_ENABLE sl_hal_eusart_enable_interrupts
+#define EUSART_INT_DISABLE sl_hal_eusart_disable_interrupts
+#define EUSART_INT_SET sl_hal_eusart_set_interrupts
+#define EUSART_INT_CLEAR sl_hal_eusart_clear_interrupts
+#define EUSART_CLEAR_RX sl_hal_eusart_clear_rx
+#define EUSART_GET_PENDING_INT sl_hal_eusart_get_pending_interrupts
+#define EUSART_ENABLE(eusart)                                                                                                      \
+    {                                                                                                                              \
+        sl_hal_eusart_enable(eusart);                                                                                              \
+        sl_hal_eusart_enable_tx(eusart);                                                                                           \
+        sl_hal_eusart_enable_rx(eusart);                                                                                           \
+    }
+#endif //_SILICON_LABS_32B_SERIES
+
+#else
+#define USART_IRQ HELPER2(SL_UARTDRV_USART_VCOM_PERIPHERAL_NO)
+#define USART_IRQHandler HELPER4(SL_UARTDRV_USART_VCOM_PERIPHERAL_NO)
+#define vcom_handle sl_uartdrv_usart_vcom_handle
+#endif // SL_CATALOG_UARTDRV_EUSART_PRESENT
+
+namespace {
+uint8_t sRxDmaBuffer[MAX_DMA_BUFFER_SIZE]  = { 0 };
+uint8_t sRxDmaBuffer2[MAX_DMA_BUFFER_SIZE] = { 0 };
+uint16_t lastCount                         = 0; // Nb of bytes already processed from the active dmaBuffer
+} // namespace
+
+static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount);
+
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL || CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
 
 #if defined(_SILICON_LABS_32B_SERIES_3)
 // To remove any ambiguities regarding the Flash aliases, use the below macro to ignore the 8 MSB.
@@ -310,6 +401,141 @@ uint8_t SilabsPlatform::GetButtonState(uint8_t button)
     return 0;
 }
 #endif // SL_CATALOG_SIMPLE_BUTTON_PRESENT
+
+// UART hardware-specific implementations
+#if SILABS_LOG_OUT_UART || (defined(ENABLE_CHIP_SHELL) && ENABLE_CHIP_SHELL) ||                                                    \
+    defined(CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+
+extern "C" void USART_IRQHandler(void)
+{
+#ifdef ENABLE_CHIP_SHELL
+    chip::NotifyShellProcess();
+#elif !defined(PW_RPC_ENABLED) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+    otSysEventSignalPending();
+#endif
+#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
+    // disable RXFL IRQ until data read by uartConsoleRead
+    EUSART_INT_DISABLE(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, EUSART_IF_RXFL);
+    EUSART_INT_CLEAR(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, EUSART_IF_RXFL);
+
+    if (EUSART_GET_PENDING_INT(SL_UARTDRV_EUSART_VCOM_PERIPHERAL) & EUSART_IF_RXOF)
+    {
+        EUSART_CLEAR_RX(SL_UARTDRV_EUSART_VCOM_PERIPHERAL);
+    }
+#endif
+}
+
+static void UART_tx_callback(struct UARTDRV_HandleData * handle, Ecode_t transferStatus, uint8_t * data,
+                              UARTDRV_Count_t transferCount)
+{
+    uartSignalTxComplete();
+}
+
+static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount)
+{
+    (void) transferStatus;
+
+    uint8_t writeSize = (transferCount - lastCount);
+    uartCacheRxBytes(data + lastCount, writeSize);
+    lastCount = 0;
+
+    UARTDRV_Receive(vcom_handle, data, transferCount, UART_rx_callback);
+
+#ifdef ENABLE_CHIP_SHELL
+    chip::NotifyShellProcess();
+#elif !defined(PW_RPC_ENABLED) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+    otSysEventSignalPending();
+#endif
+}
+
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL || CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+
+void SilabsPlatform::UartConsoleInitHw(void)
+{
+#if SILABS_LOG_OUT_UART || (defined(ENABLE_CHIP_SHELL) && ENABLE_CHIP_SHELL) ||                                                    \
+    defined(CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+#ifdef SL_BOARD_NAME
+    sl_board_enable_vcom();
+#endif
+
+    // Activate 2 dma queues to always have one active
+    UARTDRV_Receive(vcom_handle, sRxDmaBuffer, MAX_DMA_BUFFER_SIZE, UART_rx_callback);
+    UARTDRV_Receive(vcom_handle, sRxDmaBuffer2, MAX_DMA_BUFFER_SIZE, UART_rx_callback);
+
+    // Enable USART0/EUSART0 interrupt to wake OT task when data arrives
+    NVIC_ClearPendingIRQ(USART_IRQ);
+    NVIC_EnableIRQ(USART_IRQ);
+
+#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
+    // Clear previous RX interrupts
+    EUSART_INT_CLEAR(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, (EUSART_IF_RXFL | EUSART_IF_RXOF));
+    EUSART_CLEAR_RX(SL_UARTDRV_EUSART_VCOM_PERIPHERAL);
+
+    // Enable RX interrupts
+    EUSART_INT_ENABLE(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, EUSART_IF_RXFL);
+
+    // Enable EUSART
+    EUSART_ENABLE(SL_UARTDRV_EUSART_VCOM_PERIPHERAL);
+#else
+    USART_IntEnable(SL_UARTDRV_USART_VCOM_PERIPHERAL, USART_IF_RXDATAV);
+#endif // SL_CATALOG_UARTDRV_EUSART_PRESENT
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL || CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+}
+
+void SilabsPlatform::UartSendBytes(uint8_t * data, uint16_t length)
+{
+#if SILABS_LOG_OUT_UART || (defined(ENABLE_CHIP_SHELL) && ENABLE_CHIP_SHELL) ||                                                    \
+    defined(CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+    sl_power_manager_add_em_requirement(SL_POWER_MANAGER_EM1);
+#endif // SL_CATALOG_POWER_MANAGER_PRESENT
+
+#if defined(SL_UARTCTRL_MUX) && SL_UARTCTRL_MUX
+    sl_wfx_host_pre_uart_transfer();
+#endif // SL_UARTCTRL_MUX
+
+#if (defined(EFR32MG24) && defined(WF200_WIFI))
+    // Blocking transmit for the MG24 + WF200 since UART TX is multiplexed with WF200 SPI IRQ
+    UARTDRV_ForceTransmit(vcom_handle, data, length);
+#else
+    // Non Blocking Transmit
+    UARTDRV_Transmit(vcom_handle, data, length, UART_tx_callback);
+    uartWaitForTxComplete();
+#endif /* EFR32MG24 && WF200_WIFI */
+
+#if defined(SL_UARTCTRL_MUX) && SL_UARTCTRL_MUX
+    sl_wfx_host_post_uart_transfer();
+#endif // SL_UARTCTRL_MUX
+
+#if defined(SL_CATALOG_POWER_MANAGER_PRESENT)
+    sl_power_manager_remove_em_requirement(SL_POWER_MANAGER_EM1);
+#endif // SL_CATALOG_POWER_MANAGER_PRESENT
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL || CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+}
+
+void SilabsPlatform::UartForceTransmit(const char * data, uint16_t length)
+{
+#if SILABS_LOG_OUT_UART || (defined(ENABLE_CHIP_SHELL) && ENABLE_CHIP_SHELL) ||                                                    \
+    defined(CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+    UARTDRV_ForceTransmit(vcom_handle, reinterpret_cast<uint8_t *>(const_cast<char *>(data)), length);
+#endif
+}
+
+void SilabsPlatform::UartFlushRxBuffer(void)
+{
+#if SILABS_LOG_OUT_UART || (defined(ENABLE_CHIP_SHELL) && ENABLE_CHIP_SHELL) ||                                                    \
+    defined(CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI) && CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+#ifdef SL_CATALOG_UARTDRV_EUSART_PRESENT
+    EUSART_INT_ENABLE(SL_UARTDRV_EUSART_VCOM_PERIPHERAL, EUSART_IF_RXFL);
+#endif
+    uint8_t * data;
+    UARTDRV_Count_t count, remaining;
+    CORE_ATOMIC_SECTION(UARTDRV_GetReceiveStatus(vcom_handle, &data, &count, &remaining); if (count > lastCount) {
+        uartCacheRxBytes(data + lastCount, count - lastCount);
+        lastCount = count;
+    })
+#endif // SILABS_LOG_OUT_UART || ENABLE_CHIP_SHELL || CHIP_DEVICE_CONFIG_THREAD_ENABLE_CLI
+}
 
 #if SL_MATTER_DEBUG_WATCHDOG_ENABLE
 void SilabsPlatform::WatchdogInit()
