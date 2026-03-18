@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build_overrides/chip.gni")
+import("//build_overrides/build.gni")
 
-chip_ble_project_config_include = "<CHIPProjectConfig.h>"
-chip_device_project_config_include = "<CHIPProjectConfig.h>"
-chip_project_config_include = "<CHIPProjectConfig.h>"
-chip_inet_project_config_include = "<CHIPProjectConfig.h>"
-chip_system_project_config_include = "<CHIPProjectConfig.h>"
+# The location of the build configuration file.
+buildconfig = "${build_root}/config/BUILDCONFIG.gn"
 
-chip_build_libshell = true
-chip_enable_read_client = true
+# CHIP uses angle bracket includes.
+check_system_includes = true
 
-segger_rtt_buffer_size_up = 1024
-segger_rtt_buffer_size_down = 1024
+default_args = {
+  target_cpu = "arm"
+  target_os = "freertos"
+  chip_openthread_ftd = true
+  optimize_debug_level = "s"
 
-declare_args() {
-  app_data_model = ""
+  import("//openthread.gni")
 }

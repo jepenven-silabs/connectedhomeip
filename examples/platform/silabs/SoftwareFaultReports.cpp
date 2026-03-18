@@ -20,7 +20,9 @@
 #include "FreeRTOSConfig.h"
 #include "silabs_utils.h"
 #include <app/clusters/software-diagnostics-server/software-fault-listener.h>
+#ifdef MATTER_DM_PLUGIN_SOFTWARE_DIAGNOSTICS_SERVER
 #include <app/util/attribute-storage.h>
+#endif // MATTER_DM_PLUGIN_SOFTWARE_DIAGNOSTICS_SERVER
 #include <cmsis_os2.h>
 #include <lib/support/CHIPMemString.h>
 #include <lib/support/CodeUtils.h>
