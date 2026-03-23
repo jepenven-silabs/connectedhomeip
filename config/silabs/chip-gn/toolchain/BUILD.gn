@@ -12,23 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build_overrides/build.gni")
+#import("//build_overrides/build.gni")
 
-import("${build_root}/toolchain/arm_gcc/arm_toolchain.gni")
+#import("${build_root}/toolchain/arm_gcc/arm_toolchain.gni")
 
-declare_args() {
-  zephyr_ar = ""
-  zephyr_cc = ""
-  zephyr_cxx = ""
-}
+#declare_args() {
+#  zephyr_ar = ""
+#  zephyr_cc = ""
+#  zephyr_cxx = ""
+#}
 
-gcc_toolchain("zephyr") {
-  ar = zephyr_ar
-  cc = zephyr_cc
-  cxx = zephyr_cxx
-
-  toolchain_args = {
-    current_os = "zephyr"
-    is_clang = false
-  }
-}
+#gcc_toolchain("zephyr") {
+#  ar = zephyr_ar
+#  cc = zephyr_cc
+#  cxx = zephyr_cxx#
+#
+# toolchain_args = {
+#    current_os = "zephyr"
+#    is_clang = false
+#  }
+#}
