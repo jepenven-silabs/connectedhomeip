@@ -80,7 +80,7 @@ source_set("string-builder-adapters") {
 
   public_deps = [
     ":data-model-provider",
-    "$dir_pw_string",
+    #"$dir_pw_string",
     "${chip_root}/src/lib/core:string-builder-adapters",
   ]
 }

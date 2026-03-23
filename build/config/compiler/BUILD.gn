@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import("//build_overrides/build.gni")
-import("//build_overrides/pigweed.gni")
-import("//build_overrides/pigweed_environment.gni")
+#import("//build_overrides/pigweed.gni")
+#import("//build_overrides/pigweed_environment.gni")
 import("${build_root}/chip/java/config.gni")
 import("${build_root}/config/compiler/compiler.gni")
 import("${build_root}/config/sysroot.gni")
@@ -376,7 +376,7 @@ config("std_default") {
 }
 
 config("cosmetic_default") {
-  configs = [ "$dir_pw_build:colorize_output" ]
+#  configs = [ "$dir_pw_build:colorize_output" ]
 }
 
 config("runtime_default") {

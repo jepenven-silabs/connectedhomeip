@@ -17,4 +17,4 @@ declare_args() {
   dir_pigweed = "//third_party/pigweed/repo"
 }
 
-import("$dir_pigweed/modules.gni")
+#import("$dir_pigweed/modules.gni")
