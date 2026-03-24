@@ -59,7 +59,7 @@ namespace chip {
 namespace DeviceLayer {
 
 namespace {
-
+#if defined(CONFIG_THREAD_MONITOR)
 static void GetThreadInfo(const struct k_thread * thread, void * user_data)
 {
     size_t unusedStackSize;
@@ -91,7 +91,7 @@ static void GetThreadInfo(const struct k_thread * thread, void * user_data)
     threadMetrics->Next    = *threadMetricsListHead;
     *threadMetricsListHead = threadMetrics;
 }
-
+#endif // CONFIG_THREAD_MONITOR
 BootReasonType DetermineBootReason()
 {
 #ifdef CONFIG_HWINFO

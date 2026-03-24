@@ -44,7 +44,7 @@
 #ifdef CONFIG_CHIP_FACTORY_RESET_ERASE_SETTINGS
 #include <zephyr/settings/settings.h>
 #if defined(CONFIG_SETTINGS_NVS)
-#include <zephyr/fs/nvs.h>
+#include <zephyr/kvss/nvs.h>
 #elif defined(CONFIG_SETTINGS_ZMS)
 #include <zephyr/fs/zms.h>
 #endif // CONFIG_SETTINGS_NVS || CONFIG_SETTINGS_ZMS
