@@ -54,6 +54,12 @@ config SHELL
     default y
 
 if !CHIP_WIFI
+
+config OPENTHREAD_PANID
+    default 48879
+config OPENTHREAD_NETWORK_NAME
+	default "Silabs-test"    
+
 config PM
     default y
 config SILABS_SISDK_POWER_MANAGER

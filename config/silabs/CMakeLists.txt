@@ -49,10 +49,6 @@ if (CHIP_CFLAGS)
     matter_add_flags("${CHIP_CFLAGS}")
 endif()
 
-if (CONFIG_ARM)
-    matter_add_cflags(--specs=nosys.specs)
-endif()
-
 if(CONFIG_MBEDTLS)
     zephyr_include_directories($<TARGET_PROPERTY:mbedTLS,INTERFACE_INCLUDE_DIRECTORIES>)
     zephyr_compile_definitions($<TARGET_PROPERTY:mbedTLS,INTERFACE_COMPILE_DEFINITIONS>)

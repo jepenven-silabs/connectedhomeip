@@ -109,6 +109,11 @@ using namespace ::chip::app::Clusters;
 
 chip::DeviceLayer::DeviceInfoProviderImpl gExampleDeviceInfoProvider;
 
+#if CONFIG_NET_L2_OPENTHREAD
+app::Clusters::NetworkCommissioning::InstanceAndDriver<DeviceLayer::NetworkCommissioning::GenericThreadDriver>
+    sThreadNetworkDriver(CHIP_DEVICE_CONFIG_THREAD_NETWORK_ENDPOINT_ID /*endpointId*/);
+#endif
+
 #if CONFIG_CHIP_WIFI || CHIP_DEVICE_CONFIG_ENABLE_WPA
 app::Clusters::NetworkCommissioning::Instance
     sNetworkCommissioningInstance(0, chip::Zephyr::App::GetAppTask().GetWifiDriverInstance());
@@ -260,6 +265,7 @@ CHIP_ERROR chip::Zephyr::App::AppTaskBase::Init()
         ChipLogError(DeviceLayer, "Error during ThreadStackMgr().InitThreadStack()");
         return err;
     }
+    TEMPORARY_RETURN_IGNORED sThreadNetworkDriver.Init();
 
     err = ConnectivityMgr().SetThreadDeviceType(ConnectivityManager::CONFIG_THREAD_DEVICE_TYPE);
     if (err != CHIP_NO_ERROR)

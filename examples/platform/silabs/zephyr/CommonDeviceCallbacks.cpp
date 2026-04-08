@@ -194,9 +194,3 @@ void chip::Zephyr::App::CommonDeviceCallbacks::OnCommissioningComplete(const chi
 #endif
 }
 #endif
-
-chip::DeviceManager::CHIPDeviceManagerCallbacks & chip::Zephyr::App::GetDeviceCallbacks()
-{
-    static chip::Zephyr::App::CommonDeviceCallbacks sDeviceCallbacks;
-    return sDeviceCallbacks;
-}
