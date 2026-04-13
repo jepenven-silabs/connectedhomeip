@@ -19,6 +19,7 @@
 #include "AppTask.h"
 #include "CHIPDeviceManager.h"
 
+#include <app/server/Server.h>
 #include <app/util/attribute-storage.h>
 #include <platform/CHIPDeviceLayer.h>
 
@@ -59,6 +60,8 @@ static const struct gpio_dt_spec sLed1 = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios)
 #define HAS_BUTTON0 1
 static const struct gpio_dt_spec sButton0 = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
 static struct gpio_callback sButton0CbData;
+static struct k_work_delayable sFactoryResetWarningWork;
+static struct k_work_delayable sFactoryResetTriggerWork;
 #endif
 
 #if DT_NODE_EXISTS(DT_ALIAS(sw1))
@@ -84,9 +87,33 @@ static void Led0BlinkTimerHandler(struct k_timer * timer)
 /* -------------------------------------------------------------------------- */
 
 #ifdef HAS_BUTTON0
+static void FactoryResetWarningWorkHandler(struct k_work * work)
+{
+    LOG_INF("Keep holding to factory reset in 5 seconds. Release to cancel.");
+}
+
+static void FactoryResetTriggerWorkHandler(struct k_work * work)
+{
+    LOG_INF("Factory reset triggered");
+    chip::Server::GetInstance().ScheduleFactoryReset();
+}
+
 static void Button0PressedHandler(const struct device * dev, struct gpio_callback * cb, uint32_t pins)
 {
-    LOG_INF("Button 0 pressed");
+    if (gpio_pin_get_dt(&sButton0) > 0)
+    {
+        k_work_schedule(&sFactoryResetWarningWork, K_SECONDS(2));
+        k_work_schedule(&sFactoryResetTriggerWork, K_SECONDS(7));
+    }
+    else
+    {
+        bool wasPending = k_work_cancel_delayable(&sFactoryResetTriggerWork) != 0;
+        k_work_cancel_delayable(&sFactoryResetWarningWork);
+        if (wasPending)
+        {
+            LOG_INF("Factory reset canceled");
+        }
+    }
 }
 #endif
 
@@ -124,10 +151,13 @@ void AppTask::PreInitMatterStack()
 #endif
 
 #ifdef HAS_BUTTON0
+    k_work_init_delayable(&sFactoryResetWarningWork, FactoryResetWarningWorkHandler);
+    k_work_init_delayable(&sFactoryResetTriggerWork, FactoryResetTriggerWorkHandler);
+
     if (gpio_is_ready_dt(&sButton0))
     {
         gpio_pin_configure_dt(&sButton0, GPIO_INPUT);
-        gpio_pin_interrupt_configure_dt(&sButton0, GPIO_INT_EDGE_TO_ACTIVE);
+        gpio_pin_interrupt_configure_dt(&sButton0, GPIO_INT_EDGE_BOTH);
         gpio_init_callback(&sButton0CbData, Button0PressedHandler, BIT(sButton0.pin));
         gpio_add_callback(sButton0.port, &sButton0CbData);
     }
