@@ -528,6 +528,19 @@ int16_t uartLogWrite(const char * log, uint8_t length, uint8_t category, uint64_
     workBuffer.category  = SilabsCoreLogs::LogCategory(category);
     workBuffer.timestamp = timestamp;
 
+    static bool isInitTaskRunning = true;
+    
+    if(isInitTaskRunning)
+    {
+        osPriority_t priority=osThreadGetPriority(osThreadGetId());
+        if (priority == osPriorityRealtime7) // Init Task Priority
+        {
+            return formatAndSendLog(workBuffer, true);
+        } else {
+            isInitTaskRunning = false; // If we are here, it means the task has started, we can switch to async logging
+        }
+    }
+
     // Don't wait when queue is full. Drop the log and return UART_CONSOLE_ERR
     if (osMessageQueuePut(sUartTxQueue, &workBuffer, osPriorityNormal, 0) == osOK)
     {
@@ -573,16 +586,31 @@ int16_t uartConsoleRead(char * Buf, uint16_t NbBytesToRead)
     return (int16_t) RetrieveFromFifo(&sReceiveFifo, (uint8_t *) Buf, NbBytesToRead);
 }
 
+int16_t formatAndSendLog(UartTxStruct_t & logStruct, bool forceTransmit = false)
+{
+    #if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
+    uint8_t timeStampString[SilabsCoreLogs::kTimeStampStringSize];
+    uint8_t logWorkBuffer[kHeaderSize + SilabsCoreLogs::kTimeStampStringSize + SilabsCoreLogs::kMaxCategoryStrLen +
+                    UART_TX_MAX_BUF_LEN + kEndOfLineSize +
+                    kFooterSize]; // Header + Timestamp + Category + Data + \r\n + Footer
+    SilabsCoreLogs::FormatTimestamp(reinterpret_cast<char *>(timeStampString), sizeof(timeStampString),
+                                    workBuffer.timestamp);
+    int32_t len = snprintf(reinterpret_cast<char *>(logWorkBuffer), sizeof(logWorkBuffer), "%c%s%s%.*s\r\n%c",
+                            kLogHeader, timeStampString, SilabsCoreLogs::GetCategoryString(workBuffer.category),
+                            workBuffer.length, workBuffer.data, kLogFooter);
+    if (len > 0)
+    {
+        UARTDRV_ForceTransmit(vcom_handle, logWorkBuffer, static_cast<uint16_t>(len));
+    }
+    return static_cast<int16_t>(len);
+    #else
+    return 0;
+    #endif // SILABS_LOG_ENABLED
+}
+
 void uartMainLoop(void * args)
 {
     UartTxStruct_t workBuffer;
-#if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
-    uint8_t timeStampString[SilabsCoreLogs::kTimeStampStringSize];
-    uint8_t logWorkBuffer[kHeaderSize + SilabsCoreLogs::kTimeStampStringSize + SilabsCoreLogs::kMaxCategoryStrLen +
-                          UART_TX_MAX_BUF_LEN + kEndOfLineSize +
-                          kFooterSize]; // Header + Timestamp + Category + Data + \r\n + Footer
-#endif                                  // SILABS_LOG_ENABLED
-
     while (1)
     {
         osStatus_t eventReceived = osMessageQueueGet(sUartTxQueue, &workBuffer, nullptr, osWaitForever);
@@ -591,15 +619,7 @@ void uartMainLoop(void * args)
             if (workBuffer.isLog)
             {
 #if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
-                SilabsCoreLogs::FormatTimestamp(reinterpret_cast<char *>(timeStampString), sizeof(timeStampString),
-                                                workBuffer.timestamp);
-                int32_t len = snprintf(reinterpret_cast<char *>(logWorkBuffer), sizeof(logWorkBuffer), "%c%s%s%.*s\r\n%c",
-                                       kLogHeader, timeStampString, SilabsCoreLogs::GetCategoryString(workBuffer.category),
-                                       workBuffer.length, workBuffer.data, kLogFooter);
-                if (len > 0)
-                {
-                    uartSendBytes(logWorkBuffer, static_cast<uint16_t>(len));
-                }
+                formatAndSendLog(workBuffer);
 #endif // SILABS_LOG_ENABLED
             }
             else
