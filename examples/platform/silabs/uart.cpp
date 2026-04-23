@@ -210,6 +210,8 @@ constexpr osMessageQueueAttr_t kUartTxQueueAttr = { .cb_mem  = &sUartTxQueueStru
 static uint8_t sRxFifoBuffer[MAX_BUFFER_SIZE];
 static Fifo_t sReceiveFifo;
 
+int16_t formatAndSendLog(UartTxStruct_t & logStruct, bool forceTransmit);
+
 #if defined(SLI_SI91X_MCU_INTERFACE) && SLI_SI91X_MCU_INTERFACE == 0
 static void UART_rx_callback(UARTDRV_Handle_t handle, Ecode_t transferStatus, uint8_t * data, UARTDRV_Count_t transferCount);
 #endif // SLI_SI91X_MCU_INTERFACE == 0
@@ -586,7 +588,7 @@ int16_t uartConsoleRead(char * Buf, uint16_t NbBytesToRead)
     return (int16_t) RetrieveFromFifo(&sReceiveFifo, (uint8_t *) Buf, NbBytesToRead);
 }
 
-int16_t formatAndSendLog(UartTxStruct_t & logStruct, bool forceTransmit = false)
+int16_t formatAndSendLog(UartTxStruct_t & logStruct, bool forceTransmit)
 {
     #if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
     uint8_t timeStampString[SilabsCoreLogs::kTimeStampStringSize];
@@ -594,10 +596,10 @@ int16_t formatAndSendLog(UartTxStruct_t & logStruct, bool forceTransmit = false)
                     UART_TX_MAX_BUF_LEN + kEndOfLineSize +
                     kFooterSize]; // Header + Timestamp + Category + Data + \r\n + Footer
     SilabsCoreLogs::FormatTimestamp(reinterpret_cast<char *>(timeStampString), sizeof(timeStampString),
-                                    workBuffer.timestamp);
+                                    logStruct.timestamp);
     int32_t len = snprintf(reinterpret_cast<char *>(logWorkBuffer), sizeof(logWorkBuffer), "%c%s%s%.*s\r\n%c",
-                            kLogHeader, timeStampString, SilabsCoreLogs::GetCategoryString(workBuffer.category),
-                            workBuffer.length, workBuffer.data, kLogFooter);
+                            kLogHeader, timeStampString, SilabsCoreLogs::GetCategoryString(logStruct.category),
+                            logStruct.length, logStruct.data, kLogFooter);
     if (len > 0)
     {
         UARTDRV_ForceTransmit(vcom_handle, logWorkBuffer, static_cast<uint16_t>(len));
@@ -619,7 +621,7 @@ void uartMainLoop(void * args)
             if (workBuffer.isLog)
             {
 #if defined(SILABS_LOG_ENABLED) && SILABS_LOG_ENABLED
-                formatAndSendLog(workBuffer);
+                formatAndSendLog(workBuffer, false);
 #endif // SILABS_LOG_ENABLED
             }
             else

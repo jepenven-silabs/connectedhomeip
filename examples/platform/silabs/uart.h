@@ -37,8 +37,6 @@ int16_t uartConsoleRead(char * Buf, uint16_t NbBytesToRead);
 void uartFlushTxQueue(void);
 void uartForceTransmit(const char * data, uint16_t length);
 
-int16_t formatAndSendLog(UartTxStruct_t & logStruct, bool forceTransmit = false);
-
 void uartMainLoop(void * args);
 
 // Implemented by in openthread code
