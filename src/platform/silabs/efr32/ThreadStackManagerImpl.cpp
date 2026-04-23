@@ -62,7 +62,14 @@ ThreadStackManagerImpl ThreadStackManagerImpl::sInstance;
 
 CHIP_ERROR ThreadStackManagerImpl::_InitThreadStack(void)
 {
+    #ifdef SL_OPENTHREAD_NCP_ENABLE
+    #error WORKING!!!!
+    // This function will assert should it fails.
+    otAppNcpInit(sInstance);
+    return CHIP_NO_ERROR;
+    #else
     return InitThreadStack(sOTInstance);
+    #endif
 }
 
 CHIP_ERROR ThreadStackManagerImpl::_StartThreadTask(void)

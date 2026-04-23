@@ -117,14 +117,18 @@ CHIP_ERROR RegisterRootNodeClusters(CodeDrivenDataModelProvider & provider, Cred
     ReturnErrorOnFailure(provider.AddCluster(sDescriptorCluster.Registration()));
 
     // BasicInformation
+    const BasicInformationOptionalAttributesSet optionalAttributeSet =
+        BasicInformationOptionalAttributesSet()
+            .template Set<BasicInformation::Attributes::ManufacturingDate::Id>()
+            .template Set<BasicInformation::Attributes::PartNumber::Id>()
+            .template Set<BasicInformation::Attributes::ProductURL::Id>()
+            .template Set<BasicInformation::Attributes::ProductLabel::Id>()
+            .template Set<BasicInformation::Attributes::SerialNumber::Id>()
+            .template Set<BasicInformation::Attributes::LocalConfigDisabled::Id>()
+            .template Set<BasicInformation::Attributes::Reachable::Id>();
+
     sBasicInformationCluster.Create(
-        BasicInformationCluster::OptionalAttributesSet(),
-        BasicInformationCluster::Context{
-            .deviceInstanceInfoProvider = *GetDeviceInstanceInfoProvider(),
-            .configurationManager       = ConfigurationMgr(),
-            .platformManager            = PlatformMgr(),
-            .subscriptionsPerFabric     = InteractionModelEngine::GetInstance()->GetMinGuaranteedSubscriptionsPerFabric(),
-        });
+        optionalAttributeSet, *GetDeviceInstanceInfoProvider(), ConfigurationMgr(), PlatformMgr(), InteractionModelEngine::GetInstance()->GetMinGuaranteedSubscriptionsPerFabric());
     ReturnErrorOnFailure(provider.AddCluster(sBasicInformationCluster.Registration()));
 
     // GeneralCommissioning
@@ -335,4 +339,25 @@ void AppTask::ButtonEventHandler(uint8_t button, uint8_t btnAction)
     button_event.ButtonEvent.Action = btnAction;
     button_event.Handler            = BaseApplication::ButtonHandler;
     AppTask::GetAppTask().PostEvent(&button_event);
+}
+
+
+// To prevent linkage failure
+extern "C" otInstance *otInstanceInitSingle(void) { return NULL;}
+
+extern "C" void otAppNcpInit(otInstance *aInstance);
+
+
+
+static otInstance * sInstance = NULL;
+
+extern "C" void sl_ot_ncp_init(void)
+{
+#if SL_OPENTHREAD_MULTI_PAN_ENABLE
+    sInstance = otInstanceInitMultiple(1); // 1 NCP instance
+    otAppNcpInit(sInstance);
+    //otAppNcpInitMulti(sInstances, OPENTHREAD_CONFIG_MULTIPLE_INSTANCE_NUM);
+#else
+    otAppNcpInit(sInstance);
+#endif
 }
