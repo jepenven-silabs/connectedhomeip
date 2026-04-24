@@ -40,3 +40,13 @@
 &storage_partition {
     reg = <0x00142000 DT_SIZE_K(40)>;
 };
+
+&dma0 {
+	status = "okay";
+};
+
+&usart0 {
+    dmas = <&dma0 DMA_REQSEL_USART0TXBL>,
+           <&dma0 DMA_REQSEL_USART0RXDATAV>;
+    dma-names = "tx", "rx";
+};
