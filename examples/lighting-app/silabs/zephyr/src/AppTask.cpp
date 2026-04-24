@@ -19,6 +19,9 @@
 #include "AppTask.h"
 #include "CHIPDeviceManager.h"
 
+#include <app-common/zap-generated/ids/Attributes.h>
+#include <app-common/zap-generated/ids/Clusters.h>
+#include <app/clusters/on-off-server/on-off-server.h>
 #include <app/server/Server.h>
 #include <app/util/attribute-storage.h>
 #include <platform/CHIPDeviceLayer.h>
@@ -35,6 +38,11 @@ LOG_MODULE_DECLARE(app, CONFIG_CHIP_APP_LOG_LEVEL);
 
 using namespace chip;
 using namespace chip::DeviceLayer;
+using namespace chip::app::Clusters;
+
+namespace {
+constexpr EndpointId kLightEndpointId = 1;
+} // namespace
 
 /* -------------------------------------------------------------------------- */
 /*                          LED devicetree bindings                           */
@@ -68,6 +76,7 @@ static struct k_work_delayable sFactoryResetTriggerWork;
 #define HAS_BUTTON1 1
 static const struct gpio_dt_spec sButton1 = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
 static struct gpio_callback sButton1CbData;
+static struct k_work sToggleOnOffWork;
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -118,12 +127,16 @@ static void Button0PressedHandler(const struct device * dev, struct gpio_callbac
 #endif
 
 #ifdef HAS_BUTTON1
+static void ToggleOnOffWorkHandler(struct k_work * work)
+{
+    bool currentValue;
+    OnOffServer::Instance().getOnOffValue(1, &currentValue);
+    OnOffServer::Instance().setOnOffValue(1, !currentValue, false);
+}
+
 static void Button1PressedHandler(const struct device * dev, struct gpio_callback * cb, uint32_t pins)
 {
-#ifdef HAS_LED1
-    gpio_pin_toggle_dt(&sLed1);
-#endif
-    LOG_INF("Button 1 pressed – LED 1 toggled");
+    k_work_submit(&sToggleOnOffWork);
 }
 #endif
 
@@ -164,6 +177,8 @@ void AppTask::PreInitMatterStack()
 #endif
 
 #ifdef HAS_BUTTON1
+    k_work_init(&sToggleOnOffWork, ToggleOnOffWorkHandler);
+
     if (gpio_is_ready_dt(&sButton1))
     {
         gpio_pin_configure_dt(&sButton1, GPIO_INPUT);
@@ -204,4 +219,13 @@ AppTask & AppTask::GetDefaultInstance()
 chip::Zephyr::App::AppTaskBase & chip::Zephyr::App::GetAppTask()
 {
     return AppTask::GetDefaultInstance();
+}
+
+void SetLed1OnOffState(bool state)
+{
+#ifdef HAS_LED1
+    gpio_pin_set_dt(&sLed1, static_cast<int>(state));
+#else
+    (void) state;
+#endif
 }

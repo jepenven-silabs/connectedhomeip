@@ -18,6 +18,7 @@
 
 #include <lib/support/logging/CHIPLogging.h>
 
+#include "AppTask.h"
 #include "DeviceCallbacks.h"
 #if CONFIG_ENABLE_FEEDBACK
 #include "UserInterfaceFeedback.h"
@@ -40,9 +41,10 @@ void LightingApp::DeviceCallbacks::PostAttributeChangeCallback(chip::EndpointId 
             ChipLogProgress(Zcl, "Unknown attribute ID: " ChipLogFormatMEI, ChipLogValueMEI(attributeId));
             return;
         }
-#if CONFIG_ENABLE_FEEDBACK
-        FeedbackMgr().RestoreState();
-#endif
+        if (value != nullptr)
+        {
+            SetLed1OnOffState(*value != 0);
+        }
     }
     else if (clusterId == LevelControl::Id)
     {
