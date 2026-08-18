@@ -21,6 +21,7 @@
 #include <cmsis_os2.h>
 #include <lib/core/CHIPCore.h>
 #include <lib/shell/Engine.h>
+#include <lib/shell/commands/Help.h>
 #include <sl_cmsis_os2_common.h>
 #ifdef SL_CATALOG_CLI_PRESENT
 #include "sl_cli.h"
@@ -28,8 +29,17 @@
 #include "sli_cli_io.h"
 #endif
 
+#include <app/server/Server.h>
+#include <credentials/FabricTable.h>
+#include <crypto/CHIPCryptoPAL.h>
+#include <inttypes.h>
+#include <lib/support/Span.h>
+
 using namespace ::chip;
-using chip::Shell::Engine;
+using Shell::Engine;
+using Shell::shell_command_t;
+using Shell::streamer_get;
+using Shell::streamer_printf;
 
 namespace {
 
@@ -111,6 +121,100 @@ void cmdSilabsInit()
 
 #endif // SL_CATALOG_CLI_PRESENT
 
+#include "sl_memory_manager.h"
+
+namespace MemoryShellCommands {
+
+Engine sShellMemorySubCommands;
+
+CHIP_ERROR MemoryCommandHandler(int argc, char ** argv)
+{
+    if (argc == 0)
+    {
+        sShellMemorySubCommands.ForEachCommand(Shell::PrintCommandHelp, nullptr);
+        return CHIP_NO_ERROR;
+    }
+    return sShellMemorySubCommands.ExecCommand(argc, argv);
+}
+
+CHIP_ERROR DisplayHeapUsage([[maybe_unused]] int argc, [[maybe_unused]] char ** argv)
+{
+    streamer_printf(streamer_get(), "%lu / %lu\r\n", sl_memory_get_used_heap_size(), sl_memory_get_total_heap_size());
+    streamer_printf(streamer_get(), "High Watermark: %lu\r\n", sl_memory_get_heap_high_watermark());
+    
+    return CHIP_NO_ERROR;
+}
+
+void RegisterCommands()
+{
+    static const Shell::shell_command_t cmds_memory = { &MemoryCommandHandler, "memory",
+                                                        "Dispatch Silabs Memory Manager CLI commands" };
+
+    static const Shell::Command sMemorySubCommands[] = {
+        { &DisplayHeapUsage, "heap", "Display heap usage" },
+    };
+    sShellMemorySubCommands.RegisterCommands(sMemorySubCommands, MATTER_ARRAY_SIZE(sMemorySubCommands));
+    Engine::Root().RegisterCommands(&cmds_memory, 1);
+}
+
+} // namespace MemoryShellCommands
+
+namespace FabricShellCommands {
+
+static void PrintHex(const uint8_t * data, size_t len)
+{
+    for (size_t i = 0; i < len; ++i)
+    {
+        streamer_printf(streamer_get(), "%02x", data[i]);
+    }
+}
+
+CHIP_ERROR PrintFabricInfo([[maybe_unused]] int argc, [[maybe_unused]] char ** argv)
+{
+    auto & fabricTable = chip::Server::GetInstance().GetFabricTable();
+    const uint8_t count = fabricTable.FabricCount();
+    streamer_printf(streamer_get(), "Fabrics: %u\r\n", (unsigned) count);
+
+    auto it = fabricTable.begin();
+    if (it != fabricTable.end())
+    {
+        streamer_printf(streamer_get(), "  fabricIndex: %d" "\r\n",
+                        static_cast<uint8_t>(it->GetFabricIndex()));
+        streamer_printf(streamer_get(), "    fabricId:  0x" ChipLogFormatX64 "\r\n",
+                        ChipLogValueX64(it->GetFabricId()));
+        streamer_printf(streamer_get(), "    nodeId:    0x" ChipLogFormatX64 "\r\n",
+                        ChipLogValueX64(it->GetNodeId()));
+
+        uint8_t cfidBuf[sizeof(uint64_t)];
+        chip::MutableByteSpan cfidSpan(cfidBuf);
+        if (it->GetCompressedFabricIdBytes(cfidSpan) == CHIP_NO_ERROR)
+        {
+            streamer_printf(streamer_get(), "    compressedFabricId: ");
+            PrintHex(cfidBuf, sizeof(cfidBuf));
+            streamer_printf(streamer_get(), "\r\n");
+        }
+
+        chip::Crypto::P256PublicKey rootPubKey;
+        if (fabricTable.FetchRootPubkey(it->GetFabricIndex(), rootPubKey) == CHIP_NO_ERROR)
+        {
+            streamer_printf(streamer_get(), "    rootPublicKey:      ");
+            PrintHex(rootPubKey.ConstBytes(), rootPubKey.Length());
+            streamer_printf(streamer_get(), "\r\n");
+        }
+    }
+    return CHIP_NO_ERROR;
+}
+
+void RegisterCommands()
+{
+    static const Shell::shell_command_t cmd_fabric = { &PrintFabricInfo, "fabric",
+                                                       "Display fabric table (index, fabricId, nodeId, "
+                                                       "compressedFabricId, rootPublicKey)" };
+    Engine::Root().RegisterCommands(&cmd_fabric, 1);
+}
+
+} // namespace FabricShellCommands
+
 void startShellTask()
 {
     int status = chip::Shell::Engine::Root().Init();
@@ -127,6 +231,8 @@ void startShellTask()
     cmdSilabsInit();
 #endif
 
+    MemoryShellCommands::RegisterCommands();
+    FabricShellCommands::RegisterCommands();
     shellTaskHandle = osThreadNew(MatterShellTask, nullptr, &kShellTaskAttr);
     VerifyOrDie(shellTaskHandle);
 }
