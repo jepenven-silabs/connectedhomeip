@@ -218,6 +218,8 @@ source_set("efr32-common") {
     sources += [
       "${silabs_common_plat_dir}/sensors/Si70xxSensor.h",
       "${silabs_common_plat_dir}/sensors/Si70xxSensorGsdk.cpp",
+#      "${silabs_common_plat_dir}/sensors/si70xx/src/sl_si70xx.c",
+#      "${silabs_common_plat_dir}/sensors/si70xx/inc/sl_si70xx.h",
     ]
     public_deps +=
         [ "${chip_root}/src/platform/silabs/platformAbstraction:common" ]

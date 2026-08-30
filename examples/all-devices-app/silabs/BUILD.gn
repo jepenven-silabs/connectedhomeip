@@ -95,7 +95,25 @@ silabs_executable("all_devices_app") {
     "include/AppKeys.h",
     "include/AppTask.h",
     "src/AppTask.cpp",
+    "src/SilabsIdentifyLedDelegate.cpp",
+    "src/SilabsIdentifyLedDelegate.h",
   ]
+
+  # When the on-board Si70xx sensor is enabled, wire real temperature/humidity
+  # readings into the humidity-sensor and temperature-sensor device types by
+  # overriding their DeviceFactory creators. The Si70xxSensor driver header
+  # lives next to its source in ${examples_common_plat_dir}/sensors.
+  if (sl_enable_si70xx_sensor) {
+    include_dirs += [ "${examples_common_plat_dir}/sensors" ]
+    sources += [
+      "src/Si70xxHumiditySensor.cpp",
+      "src/Si70xxHumiditySensor.h",
+      "src/Si70xxSensorReader.cpp",
+      "src/Si70xxSensorReader.h",
+      "src/Si70xxTemperatureSensor.cpp",
+      "src/Si70xxTemperatureSensor.h",
+    ]
+  }
 
   if (chip_build_libshell) {
     sources += [
@@ -113,6 +131,7 @@ silabs_executable("all_devices_app") {
 
     # All devices common targets
     "${chip_root}/examples/all-devices-app/all-devices-common/device-factory",
+    "${chip_root}/examples/all-devices-app/all-devices-common/device/api:platform-identify-integration",
     "${chip_root}/examples/all-devices-app/all-devices-common/device/types/aggregator",
     "${chip_root}/examples/all-devices-app/all-devices-common/device/types/air-purifier",
     "${chip_root}/examples/all-devices-app/all-devices-common/device/types/boolean-state-sensor",
