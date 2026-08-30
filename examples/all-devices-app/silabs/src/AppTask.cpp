@@ -21,6 +21,7 @@
 #include "AppConfig.h"
 #include "AppEvent.h"
 #include "AppKeys.h"
+#include "SilabsIdentifyLedDelegate.h"
 
 #ifdef ENABLE_CHIP_SHELL
 #include <DeviceShellCommands.h>
@@ -45,8 +46,14 @@
 
 #include <app_config/enabled_devices.h>
 #include <device-factory/DeviceFactory.h>
+#include <device/api/PlatformIdentifyIntegration.h>
 #include <device/api/allocator/ConsecutiveEndpointIdAllocator.h>
 #include <device/types/root-node/RootNode.h>
+
+#if defined(SL_MATTER_USE_SI70XX_SENSOR) && SL_MATTER_USE_SI70XX_SENSOR
+#include "Si70xxHumiditySensor.h"
+#include "Si70xxTemperatureSensor.h"
+#endif // defined(SL_MATTER_USE_SI70XX_SENSOR) && SL_MATTER_USE_SI70XX_SENSOR
 
 #if CHIP_ENABLE_OPENTHREAD
 #include <device/types/root-node/ThreadRootNode.h>
@@ -79,6 +86,39 @@ chip::DeviceLayer::NetworkCommissioning::GenericThreadDriver sThreadDriver;
 #endif
 
 constexpr chip::EndpointId kDeviceEndpointId = 1;
+
+/// Wraps an EndpointIdAllocator to capture the first endpoint id handed out
+/// during a device's Register() call. This lets us log the primary endpoint
+/// assigned to each instantiated device without depending on the concrete
+/// DeviceInterface subclass (SingleEndpoint / composite / etc.).
+class TrackingEndpointIdAllocator : public chip::app::EndpointIdAllocator
+{
+public:
+    explicit TrackingEndpointIdAllocator(chip::app::EndpointIdAllocator & inner) : mInner(inner) {}
+
+    chip::EndpointId Allocate() override
+    {
+        chip::EndpointId id = mInner.Allocate();
+        if (mFirst == chip::kInvalidEndpointId)
+        {
+            mFirst = id;
+        }
+        return id;
+    }
+
+    /// Returns the first endpoint id allocated since the last Reset() and
+    /// clears the tracked value.
+    chip::EndpointId TakeFirst()
+    {
+        chip::EndpointId first = mFirst;
+        mFirst                 = chip::kInvalidEndpointId;
+        return first;
+    }
+
+private:
+    chip::app::EndpointIdAllocator & mInner;
+    chip::EndpointId mFirst = chip::kInvalidEndpointId;
+};
 } // namespace
 
 AppTask AppTask::sAppTask;
@@ -153,6 +193,15 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
     static chip::app::DefaultTimerDelegate sTimerDelegate;
     static SimpleTestEventTriggerDelegate sTestEventTriggerDelegate;
 
+    // Install the SiLabs status-LED identify delegate for every code-driven
+    // endpoint that registers an IdentifyCluster. Also advertise
+    // `kVisibleIndicator` so commissioners (e.g. Home Assistant) surface the
+    // identify action.
+    static chip::app::SilabsIdentifyLedDelegate sIdentifyLedDelegate;
+    chip::app::PlatformIdentifyIntegration::GetInstance().SetDelegate(&sIdentifyLedDelegate);
+    chip::app::PlatformIdentifyIntegration::GetInstance().SetIdentifyType(
+        chip::app::Clusters::Identify::IdentifyTypeEnum::kVisibleIndicator);
+
     chip::app::RootNode::Context rootNodeContext = {
         .commissioningWindowManager = chip::Server::GetInstance().GetCommissioningWindowManager(),
         .configurationManager       = chip::DeviceLayer::ConfigurationMgr(),
@@ -211,7 +260,43 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
 
     auto & deviceFactory = chip::app::DeviceFactory::GetInstance();
 
+#if defined(SL_MATTER_USE_SI70XX_SENSOR) && SL_MATTER_USE_SI70XX_SENSOR
+    // Override the default simulated humidity/temperature sensors with
+    // implementations backed by the on-board Si70xx driver so the device
+    // reports real hardware readings when the board supports it.
+    if constexpr (ALL_DEVICES_ENABLE_HUMIDITY_SENSOR)
+    {
+        // sTimerDelegate has static storage duration, so it is referenced directly rather than
+        // captured (capturing statics is disallowed under -Werror per C++ rules).
+        deviceFactory.RegisterCreator("humidity-sensor",
+                                      []() { return std::make_unique<chip::app::Si70xxHumiditySensor>(sTimerDelegate); });
+    }
+    if constexpr (ALL_DEVICES_ENABLE_TEMPERATURE_SENSOR)
+    {
+        deviceFactory.RegisterCreator("temperature-sensor",
+                                      []() { return std::make_unique<chip::app::Si70xxTemperatureSensor>(); });
+    }
+#endif // defined(SL_MATTER_USE_SI70XX_SENSOR) && SL_MATTER_USE_SI70XX_SENSOR
+
     ConsecutiveEndpointIdAllocator allocator(kDeviceEndpointId);
+    TrackingEndpointIdAllocator trackingAllocator(allocator);
+
+    // Log the list of device types this build can instantiate. This mirrors the
+    // registry populated by DeviceFactory::Init() plus any RegisterCreator()
+    // overrides above (e.g. Si70xx sensors).
+    {
+        auto supportedDeviceTypes = deviceFactory.SupportedDeviceTypes();
+        ChipLogProgress(AppServer, "Supported device types (%u):",
+                        static_cast<unsigned>(supportedDeviceTypes.size()));
+        for (const auto & type : supportedDeviceTypes)
+        {
+            ChipLogProgress(AppServer, "  - %s", type.c_str());
+        }
+    }
+
+    // Records (device type, primary endpoint id) for every device that is
+    // successfully registered so a summary can be emitted below.
+    std::vector<std::pair<std::string, chip::EndpointId>> registeredDevices;
 
     auto instantiateDevice = [&](const std::string & type) -> CHIP_ERROR {
         if (!deviceFactory.IsValidDevice(type))
