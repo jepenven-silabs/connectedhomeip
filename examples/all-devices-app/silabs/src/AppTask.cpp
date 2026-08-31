@@ -39,6 +39,7 @@
 #include <app/EventManagement.h>
 #include <app/InteractionModelEngine.h>
 #include <app/TestEventTriggerDelegate.h>
+#include <app/icd/server/ICDServerConfig.h>
 #include <app/server/Dnssd.h>
 #include <app/server/Server.h>
 #include <platform/CHIPDeviceLayer.h>
@@ -225,6 +226,15 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
             chip::app::InteractionModelEngine::GetInstance()->GetMinGuaranteedSubscriptionsPerFabric(),
     };
 
+#if CHIP_CONFIG_ENABLE_ICD_SERVER
+    // When the build is configured as an Intermittently Connected Device, hand the RootNode
+    // the SessionKeystore so it can construct the ICDManagement cluster on the root endpoint.
+    // The ICDManager itself is already owned/initialized by chip::Server when
+    // CHIP_CONFIG_ENABLE_ICD_SERVER=1, so no extra setup is required here.
+    rootNodeContext.icdSymmetricKeystore = chip::Server::GetInstance().GetSessionKeystore();
+    ChipLogProgress(AppServer, "ICD server enabled: registering ICDManagement cluster on the root endpoint");
+#endif // CHIP_CONFIG_ENABLE_ICD_SERVER
+
 #if CHIP_ENABLE_OPENTHREAD
     sRootNode = std::make_unique<chip::app::ThreadRootNode>(rootNodeContext,
                                                             chip::app::ThreadRootNode::ThreadContext{
@@ -318,6 +328,31 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
     // build configuration.
     constexpr std::string_view kBuildTimeDevices{ ALL_DEVICES_DEFAULT_DEVICES };
 
+    // Helper that (when this build is configured as an ICD) instantiates an extra
+    // `power-source` endpoint so commissioners can display a battery level and
+    // battery voltage. The primary device stays whatever the user selected.
+    auto maybeAddPowerSource = [&]() -> CHIP_ERROR {
+#if CHIP_CONFIG_ENABLE_ICD_SERVER
+        if (!deviceFactory.IsValidDevice("power-source"))
+        {
+            ChipLogError(AppServer,
+                         "ICD build requested a power-source endpoint but the device factory has no 'power-source' entry");
+            return CHIP_NO_ERROR;
+        }
+        // Skip if the user already explicitly registered a power-source device.
+        for (const auto & entry : registeredDevices)
+        {
+            if (entry.first == "power-source")
+            {
+                return CHIP_NO_ERROR;
+            }
+        }
+        return instantiateDevice("power-source");
+#else
+        return CHIP_NO_ERROR;
+#endif // CHIP_CONFIG_ENABLE_ICD_SERVER
+    };
+
     if (!kBuildTimeDevices.empty())
     {
         sConstructedDevices.reserve(ALL_DEVICES_DEFAULT_DEVICES_COUNT);
@@ -334,6 +369,8 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
             }
             remaining.remove_prefix(comma + 1);
         }
+        ReturnErrorOnFailure(maybeAddPowerSource());
+        logRegisteredDevices();
         return CHIP_NO_ERROR;
     }
 
@@ -355,7 +392,10 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
         deviceType = deviceFactory.GetDefaultDevice();
     }
 
-    return instantiateDevice(deviceType);
+    ReturnErrorOnFailure(instantiateDevice(deviceType));
+    ReturnErrorOnFailure(maybeAddPowerSource());
+    logRegisteredDevices();
+    return CHIP_NO_ERROR;
 }
 
 chip::app::CodeDrivenDataModelProvider * AppTask::GetDataModelProvider()
