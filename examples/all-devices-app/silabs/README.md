@@ -93,3 +93,40 @@ matterCli> devtype list
 matterCli> devtype set humidity-sensor
 matterCli> reboot
 ```
+
+## Building as an Intermittently Connected Device (ICD)
+
+Append the `-icd` modifier to the target name (or pass
+`chip_enable_icd_server=true chip_openthread_ftd=false` directly to
+`gn_silabs_example.sh`) to produce an image that advertises as an ICD:
+
+```bash
+./scripts/build/build_examples.py \
+    --target efr32-brd4187c-all-devices-icd \
+    build
+```
+
+When `CHIP_CONFIG_ENABLE_ICD_SERVER=1` at compile time the app additionally:
+
+-   Registers the `ICDManagement` cluster on the root endpoint. The
+    `ICDManager` itself lives on `chip::Server` and is initialized
+    automatically by the Matter server.
+-   Instantiates an extra `power-source` endpoint alongside the selected
+    device so commissioners (e.g. Home Assistant) can display a battery
+    level (`BatPercentRemaining`) and battery voltage (`BatVoltage`).
+
+The extra `power-source` endpoint is added transparently — if the build-time
+device list already contains `"power-source"`, no duplicate endpoint is
+added.
+
+Combine `-icd` with the other modifiers just like any other Silabs target,
+e.g.:
+
+```bash
+./scripts/build/build_examples.py \
+    --target efr32-brd4187c-all-devices-humidity-sensor-icd-shell \
+    build
+```
+
+To switch a device back to a non-ICD build, simply drop the `-icd` modifier
+(or set `chip_enable_icd_server=false`).
