@@ -21,7 +21,9 @@
 #include "AppConfig.h"
 #include "AppEvent.h"
 #include "AppKeys.h"
+#include "SilabsDimmableLight.h"
 #include "SilabsIdentifyLedDelegate.h"
+#include "SilabsOnOffLight.h"
 
 #ifdef ENABLE_CHIP_SHELL
 #include <DeviceShellCommands.h>
@@ -287,6 +289,33 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
                                       []() { return std::make_unique<chip::app::Si70xxTemperatureSensor>(); });
     }
 #endif // defined(SL_MATTER_USE_SI70XX_SENSOR) && SL_MATTER_USE_SI70XX_SENSOR
+
+    // Override the default logging-only on-off-light / dimmable-light with
+    // SiLabs implementations that also drive the on-board LED (LED1 on
+    // two-LED boards, or the RGB LED via PWM on boards that only expose one).
+    if constexpr (ALL_DEVICES_ENABLE_ON_OFF_LIGHT)
+    {
+        deviceFactory.RegisterCreator("on-off-light", [groupDataProvider]() {
+            return std::make_unique<chip::app::SilabsOnOffLight>(chip::app::LoggingOnOffLight::Context{
+                .groupDataProvider = *groupDataProvider,
+                .fabricTable       = chip::Server::GetInstance().GetFabricTable(),
+                .timerDelegate     = sTimerDelegate,
+            });
+        });
+    }
+    if constexpr (ALL_DEVICES_ENABLE_DIMMABLE_LIGHT)
+    {
+        deviceFactory.RegisterCreator("dimmable-light", [groupDataProvider]() {
+            return std::make_unique<chip::app::SilabsDimmableLight>(
+                chip::app::LoggingDimmableLight::Context{
+                    .groupDataProvider = *groupDataProvider,
+                    .fabricTable       = chip::Server::GetInstance().GetFabricTable(),
+                    .timerDelegate     = sTimerDelegate,
+                },
+                chip::app::DimmableLoad::Config{
+                    .levelControl = chip::app::DimmableLoad::LevelControlConfig::CiPicsDefaults() });
+        });
+    }
 
     ConsecutiveEndpointIdAllocator allocator(kDeviceEndpointId);
     TrackingEndpointIdAllocator trackingAllocator(allocator);

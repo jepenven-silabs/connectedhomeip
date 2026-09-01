@@ -138,6 +138,16 @@ int soc_pll_config(void)
     return status;
 }
 #endif // CHIP_CONFIG_ENABLE_ICD_SERVER
+#ifdef ENABLE_WSTK_LEDS
+// When application code references LED indices that don't physically exist on
+// the current board (e.g. an app assumes a dedicated "application" LED at
+// index 1 but the board only has LED0), redirect the request to LED 0 so the
+// call still has a visible effect instead of failing with INVALID_ARGUMENT.
+constexpr inline uint8_t NormalizeLedIndex(uint8_t led)
+{
+    return (led >= SL_LED_COUNT) ? 0 : led;
+}
+#endif // ENABLE_WSTK_LEDS
 } // namespace
 
 SilabsPlatform SilabsPlatform::sSilabsPlatformAbstractionManager;
@@ -176,7 +186,7 @@ void SilabsPlatform::InitLed(void)
 
 CHIP_ERROR SilabsPlatform::SetLed(bool state, uint8_t led)
 {
-    VerifyOrReturnError(led < SL_LED_COUNT, CHIP_ERROR_INVALID_ARGUMENT);
+    led = NormalizeLedIndex(led);
 #if (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1)
     (state) ? sl_si91x_simple_rgb_led_on(SL_RGB_LED_INSTANCE(led)) : sl_si91x_simple_rgb_led_off(SL_RGB_LED_INSTANCE(led));
 #else
@@ -193,13 +203,39 @@ bool SilabsPlatform::GetLedState(uint8_t led)
 
 CHIP_ERROR SilabsPlatform::ToggleLed(uint8_t led)
 {
-    VerifyOrReturnError(led < SL_LED_COUNT, CHIP_ERROR_INVALID_ARGUMENT);
+    led = NormalizeLedIndex(led);
 #if (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1)
     sl_si91x_simple_rgb_led_toggle(SL_RGB_LED_INSTANCE(led));
 #else
     sl_si91x_led_toggle(ledPinArray[led]);
 #endif // (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED)
     return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR SilabsPlatform::SetLedLevel(uint8_t led, uint8_t level)
+{
+    led = NormalizeLedIndex(led);
+#if (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1)
+    // Render the requested intensity as white on the RGB LED by driving each
+    // color channel to the same PWM value. When color-temperature-light or
+    // extended-color-light device types are wired up in the future, they will
+    // override this by calling SetLedColor() directly.
+    uint32_t rgb_color = (static_cast<uint32_t>(level) << 16) | (static_cast<uint32_t>(level) << 8) | level;
+    sl_si91x_simple_rgb_led_set_colour(SL_RGB_LED_INSTANCE(led), rgb_color);
+    if (level == 0)
+    {
+        sl_si91x_simple_rgb_led_off(SL_RGB_LED_INSTANCE(led));
+    }
+    else
+    {
+        sl_si91x_simple_rgb_led_on(SL_RGB_LED_INSTANCE(led));
+    }
+    return CHIP_NO_ERROR;
+#else
+    // No PWM available on plain simple LEDs -- fall back to on/off thresholding
+    // so LevelControl still produces a visible signal on non-RGB boards.
+    return SetLed(level > 0, led);
+#endif // SL_MATTER_RGB_LED_ENABLED
 }
 #endif // ENABLE_WSTK_LEDS
 #if defined(SL_CATALOG_CUSTOM_MAIN_PRESENT)
@@ -212,10 +248,12 @@ void SilabsPlatform::StartScheduler()
 #if (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1)
 bool SilabsPlatform::GetRGBLedState(uint8_t led)
 {
+    led = NormalizeLedIndex(led);
     return sl_si91x_simple_rgb_led_get_current_state(SL_RGB_LED_INSTANCE(led));
 }
 CHIP_ERROR SilabsPlatform::SetLedColor(uint8_t led, uint8_t red, uint8_t green, uint8_t blue)
 {
+    led = NormalizeLedIndex(led);
     uint32_t rgb_color;
     rgb_color = (red) << 16 | (green) << 8 | (blue);
     sl_si91x_simple_rgb_led_set_colour(SL_RGB_LED_INSTANCE(led), rgb_color);
@@ -223,6 +261,7 @@ CHIP_ERROR SilabsPlatform::SetLedColor(uint8_t led, uint8_t red, uint8_t green, 
 }
 CHIP_ERROR SilabsPlatform::GetLedColor(uint8_t led, uint16_t & r, uint16_t & g, uint16_t & b)
 {
+    led = NormalizeLedIndex(led);
     sl_si91x_simple_rgb_led_get_colour(SL_RGB_LED_INSTANCE(led), &r, &g, &b);
     return CHIP_NO_ERROR;
 }

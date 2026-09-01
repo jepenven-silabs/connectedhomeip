@@ -482,24 +482,56 @@ bool BaseApplication::ActivateStatusLedPatterns()
     // Identify Patterns have priority over Status patterns
     if (!isPatternSet)
     {
+#if defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1
+        // On boards that only expose a single RGB LED, the status LED and the
+        // application LED are physically the same device. Once commissioning
+        // completes, hand ownership of the LED back to the application so
+        // on/off/level (or color) commands drive the LED instead of the status
+        // pattern keeping it lit.
+        //
+        // The yield is applied only on the first tick that finds the device
+        // attached so we don't fight the application on subsequent ticks. The
+        // flag is reset when the device is no longer attached (e.g. after a
+        // factory reset or fabric removal) so the status LED is re-armed.
+        static bool sStatusLedYieldedToApp = false;
+#endif // SL_MATTER_RGB_LED_ENABLED
+
         // Apply different status feedbacks
         if (BaseApplication::sIsProvisioned && sIsEnabled)
         {
             if (sIsAttached)
             {
+#if defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1
+                if (!sStatusLedYieldedToApp)
+                {
+                    sStatusLED.Set(false);
+                    sStatusLedYieldedToApp = true;
+                }
+                // Do not drive the LED further; the application owns it now.
+#else
                 sStatusLED.Set(true);
+#endif // SL_MATTER_RGB_LED_ENABLED
             }
             else
             {
+#if defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1
+                sStatusLedYieldedToApp = false;
+#endif // SL_MATTER_RGB_LED_ENABLED
                 sStatusLED.Blink(950, 50);
             }
         }
         else if (sHaveBLEConnections)
         {
+#if defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1
+            sStatusLedYieldedToApp = false;
+#endif // SL_MATTER_RGB_LED_ENABLED
             sStatusLED.Blink(100, 100);
         }
         else
         {
+#if defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1
+            sStatusLedYieldedToApp = false;
+#endif // SL_MATTER_RGB_LED_ENABLED
             sStatusLED.Blink(50, 950);
         }
         isPatternSet = true;
