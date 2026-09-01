@@ -288,6 +288,10 @@ else
         exit 1
     fi
 
+    if [[ "BRD2601B" == "$SILABS_BOARD" ]]; then
+        echo "BRD2601B is deprecated, please use the BRD2601D"
+    fi
+
     # 917 exception. TODO find a more generic way
     WIFI_SOC_BOARDS=("BRD4338A" "BRD2605A" "BRD4343A" "BRD4342A" "BRD2708A" "BRD2911A")
     if [[ " ${WIFI_SOC_BOARDS[@]} " =~ " ${SILABS_BOARD} " ]]; then
