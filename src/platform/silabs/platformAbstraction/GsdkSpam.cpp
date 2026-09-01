@@ -56,6 +56,19 @@ extern "C" {
 #endif // (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1)
 }
 
+// When application code references LED indices that don't physically exist on
+// the current board (e.g. an app assumes a dedicated "application" LED at
+// index 1 but the board only has LED0), redirect the request to LED 0 so the
+// call still has a visible effect instead of failing with INVALID_ARGUMENT.
+// This keeps the abstraction usable across boards that expose a single LED
+// (mono or RGB) without requiring per-board conditionals in the app layer.
+namespace {
+constexpr inline uint8_t NormalizeLedIndex(uint8_t led)
+{
+    return (led >= SL_SIMPLE_LED_COUNT) ? 0 : led;
+}
+} // namespace
+
 #endif
 
 #ifdef SL_CATALOG_SIMPLE_BUTTON_PRESENT
@@ -219,32 +232,48 @@ void SilabsPlatform::InitLed(void)
 
 CHIP_ERROR SilabsPlatform::SetLed(bool state, uint8_t led)
 {
-    if (led >= SL_SIMPLE_LED_COUNT)
-    {
-        return CHIP_ERROR_INVALID_ARGUMENT;
-    }
-
+    led = NormalizeLedIndex(led);
     (state) ? SL_LED_TURN_ON(SL_SIMPLE_LED_INSTANCE(led)) : SL_LED_TURN_OFF(SL_SIMPLE_LED_INSTANCE(led));
     return CHIP_NO_ERROR;
 }
 
 bool SilabsPlatform::GetLedState(uint8_t led)
 {
-    if (led >= SL_SIMPLE_LED_COUNT)
-    {
-        return false;
-    }
+    led = NormalizeLedIndex(led);
     return SL_LED_GET_STATE(SL_SIMPLE_LED_INSTANCE(led));
 }
 
 CHIP_ERROR SilabsPlatform::ToggleLed(uint8_t led)
 {
-    if (led >= SL_SIMPLE_LED_COUNT)
-    {
-        return CHIP_ERROR_INVALID_ARGUMENT;
-    }
+    led = NormalizeLedIndex(led);
     SL_LED_TOGGLE(SL_SIMPLE_LED_INSTANCE(led));
     return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR SilabsPlatform::SetLedLevel(uint8_t led, uint8_t level)
+{
+    led = NormalizeLedIndex(led);
+#if (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1)
+    // Render the requested intensity as white on the RGB LED by driving each
+    // color channel to the same PWM value. When color-temperature-light or
+    // extended-color-light device types are wired up in the future, they will
+    // override this by calling SetLedColor() directly with a temperature- or
+    // chromaticity-derived RGB triple.
+    sl_led_set_rgb_color(SL_SIMPLE_LED_INSTANCE(led), level, level, level);
+    if (level == 0)
+    {
+        SL_LED_TURN_OFF(SL_SIMPLE_LED_INSTANCE(led));
+    }
+    else
+    {
+        SL_LED_TURN_ON(SL_SIMPLE_LED_INSTANCE(led));
+    }
+    return CHIP_NO_ERROR;
+#else
+    // No PWM available on plain simple LEDs -- fall back to on/off thresholding
+    // so LevelControl still produces a visible signal on non-RGB boards.
+    return SetLed(level > 0, led);
+#endif // SL_MATTER_RGB_LED_ENABLED
 }
 #endif // ENABLE_WSTK_LEDS
 
@@ -259,15 +288,18 @@ void SilabsPlatform::StartScheduler()
 #if (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1)
 bool SilabsPlatform::GetRGBLedState(uint8_t led)
 {
+    led = NormalizeLedIndex(led);
     return SL_LED_GET_STATE(SL_SIMPLE_LED_INSTANCE(led));
 }
 CHIP_ERROR SilabsPlatform::SetLedColor(uint8_t led, uint8_t red, uint8_t green, uint8_t blue)
 {
+    led = NormalizeLedIndex(led);
     sl_led_set_rgb_color(SL_SIMPLE_LED_INSTANCE(led), red, green, blue);
     return CHIP_NO_ERROR;
 }
 CHIP_ERROR SilabsPlatform::GetLedColor(uint8_t led, uint16_t & r, uint16_t & g, uint16_t & b)
 {
+    led = NormalizeLedIndex(led);
     sl_led_get_rgb_color(SL_SIMPLE_LED_INSTANCE(led), &r, &g, &b);
     return CHIP_NO_ERROR;
 }

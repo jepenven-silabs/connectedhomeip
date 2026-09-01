@@ -47,6 +47,7 @@ public:
     CHIP_ERROR SetLed(bool state, uint8_t led) override;
     bool GetLedState(uint8_t led) override;
     CHIP_ERROR ToggleLed(uint8_t led) override;
+    CHIP_ERROR SetLedLevel(uint8_t led, uint8_t level) override;
 #endif
 
     // Buttons

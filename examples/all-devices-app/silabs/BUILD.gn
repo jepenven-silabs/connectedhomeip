@@ -95,8 +95,13 @@ silabs_executable("all_devices_app") {
     "include/AppKeys.h",
     "include/AppTask.h",
     "src/AppTask.cpp",
+    "src/SilabsDimmableLight.cpp",
+    "src/SilabsDimmableLight.h",
     "src/SilabsIdentifyLedDelegate.cpp",
     "src/SilabsIdentifyLedDelegate.h",
+    "src/SilabsLightLed.h",
+    "src/SilabsOnOffLight.cpp",
+    "src/SilabsOnOffLight.h",
   ]
 
   # When the on-board Si70xx sensor is enabled, wire real temperature/humidity

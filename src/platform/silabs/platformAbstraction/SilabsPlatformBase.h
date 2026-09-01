@@ -54,6 +54,22 @@ public:
     virtual bool GetLedState(uint8_t led) { return 0; }
     virtual CHIP_ERROR ToggleLed(uint8_t led) { return CHIP_ERROR_NOT_IMPLEMENTED; }
 
+    /**
+     * @brief Drive a LED at a specific intensity level in the range [0, 254],
+     *        which is the same range used by the Matter LevelControl cluster.
+     *
+     * On boards with a PWM-capable LED (currently RGB LEDs on the Silabs SDK),
+     * the intensity is applied by driving the R/G/B channels to `level` so the
+     * LED renders white. On boards with a plain on/off LED, this is implemented
+     * as an on/off threshold (any level > 0 turns the LED on).
+     *
+     * When the requested `led` index is greater than or equal to the number of
+     * physical LEDs on the board, implementations should redirect to the first
+     * available LED (index 0). This lets application code that assumes an
+     * "application" LED at index 1 keep working on single-LED boards.
+     */
+    virtual CHIP_ERROR SetLedLevel(uint8_t led, uint8_t level) { return CHIP_ERROR_NOT_IMPLEMENTED; }
+
     // RGB LEDS
 #if (defined(SL_MATTER_RGB_LED_ENABLED) && SL_MATTER_RGB_LED_ENABLED == 1)
     virtual bool GetRGBLedState(uint8_t led) { return 0; }
