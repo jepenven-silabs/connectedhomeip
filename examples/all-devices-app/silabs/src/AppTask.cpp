@@ -22,7 +22,7 @@
 #include "AppEvent.h"
 #include "AppKeys.h"
 #include "SilabsDimmableLight.h"
-#include "SilabsIdentifyLedDelegate.h"
+#include "SilabsIdentifyDelegate.h"
 #include "SilabsOnOffLight.h"
 
 #ifdef ENABLE_CHIP_SHELL
@@ -50,7 +50,6 @@
 
 #include <app_config/enabled_devices.h>
 #include <device-factory/DeviceFactory.h>
-#include <device/api/PlatformIdentifyIntegration.h>
 #include <device/api/allocator/ConsecutiveEndpointIdAllocator.h>
 #include <device/types/root-node/RootNode.h>
 
@@ -212,10 +211,7 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
     // endpoint that registers an IdentifyCluster. Also advertise
     // `kVisibleIndicator` so commissioners (e.g. Home Assistant) surface the
     // identify action.
-    static chip::app::SilabsIdentifyLedDelegate sIdentifyLedDelegate;
-    chip::app::PlatformIdentifyIntegration::GetInstance().SetDelegate(&sIdentifyLedDelegate);
-    chip::app::PlatformIdentifyIntegration::GetInstance().SetIdentifyType(
-        chip::app::Clusters::Identify::IdentifyTypeEnum::kVisibleIndicator);
+    static chip::app::SilabsIdentifyLedDelegate sIdentifyDelegate;
 
     chip::app::RootNode::Context rootNodeContext = {
         .commissioningWindowManager = chip::Server::GetInstance().GetCommissioningWindowManager(),
@@ -312,6 +308,7 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
                 .groupDataProvider = *groupDataProvider,
                 .fabricTable       = chip::Server::GetInstance().GetFabricTable(),
                 .timerDelegate     = sTimerDelegate,
+                .identifyDelegate  = sIdentifyDelegate,
             });
         });
     }
@@ -397,7 +394,6 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
 
     if (!kBuildTimeDevices.empty())
     {
-        sConstructedDevices.reserve(ALL_DEVICES_DEFAULT_DEVICES_COUNT);
         std::string_view remaining = kBuildTimeDevices;
         while (!remaining.empty())
         {
@@ -412,7 +408,6 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
             remaining.remove_prefix(comma + 1);
         }
         ReturnErrorOnFailure(maybeAddPowerSource());
-        logRegisteredDevices();
         return CHIP_NO_ERROR;
     }
 
@@ -436,7 +431,6 @@ CHIP_ERROR AppTask::InitCodeDrivenDataModel(chip::PersistentStorageDelegate & st
 
     ReturnErrorOnFailure(instantiateDevice(deviceType));
     ReturnErrorOnFailure(maybeAddPowerSource());
-    logRegisteredDevices();
     return CHIP_NO_ERROR;
 }
 

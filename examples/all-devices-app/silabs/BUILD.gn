@@ -71,6 +71,7 @@ efr32_sdk("sdk") {
     "${examples_plat_dir}",
     "${chip_root}/src/lib",
     "${examples_common_plat_dir}",
+    "${examples_common_plat_dir}/codeDrivenImp",
     "${examples_common_plat_dir}/freertos_config",
   ]
 
@@ -97,11 +98,11 @@ silabs_executable("all_devices_app") {
     "src/AppTask.cpp",
     "src/SilabsDimmableLight.cpp",
     "src/SilabsDimmableLight.h",
-    "src/SilabsIdentifyLedDelegate.cpp",
-    "src/SilabsIdentifyLedDelegate.h",
     "src/SilabsLightLed.h",
     "src/SilabsOnOffLight.cpp",
     "src/SilabsOnOffLight.h",
+    "${examples_common_plat_dir}/codeDrivenImp/SilabsIdentifyDelegate.cpp",
+    "${examples_common_plat_dir}/codeDrivenImp/SilabsIdentifyDelegate.h",
   ]
 
   # When the on-board Si70xx sensor is enabled, wire real temperature/humidity
@@ -136,7 +137,6 @@ silabs_executable("all_devices_app") {
 
     # All devices common targets
     "${chip_root}/examples/all-devices-app/all-devices-common/device-factory",
-    "${chip_root}/examples/all-devices-app/all-devices-common/device/api:platform-identify-integration",
     "${chip_root}/examples/all-devices-app/all-devices-common/device/types/aggregator",
     "${chip_root}/examples/all-devices-app/all-devices-common/device/types/air-purifier",
     "${chip_root}/examples/all-devices-app/all-devices-common/device/types/boolean-state-sensor",
