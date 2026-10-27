@@ -26,6 +26,34 @@ This application is solely supported with the SLC toolchain. Please install it t
 With this application, logs are solely available through the [Segger RTT interface](https://www.segger.com/products/debug-probes/j-link/tools/rtt-viewer/).
 
 
+## Prerequisites
+
+Host packages (Ubuntu):
+
+```sh
+sudo apt-get install net-tools     # provides ifconfig, required by verify_install.sh
+```
+
+Silabs services running on the host:
+
+- `cpcd.service` ([CPC daemon](https://docs.silabs.com/multiprotocol/latest/multiprotocol-solution-linux/building-cpcd-locally) bridging the NCP) 
+- `otbr-agent.service` ([OpenThread Border Router agent](https://docs.silabs.com/multiprotocol/latest/multiprotocol-solution-linux/building-otbr-locally))
+- Bluetooth [HCI bridge](https://docs.silabs.com/multiprotocol/latest/multiprotocol-solution-linux/building-bluetooth-host-locally) (optional)
+- A committed active OT dataset (`sudo ot-ctl dataset init new` then
+  `sudo ot-ctl dataset commit active` if none is present)
+
+Matter tools:
+
+- `chip-tool` on `PATH` (built from the connectedhomeip tree).
+- `mmic_host` on `PATH` (build instructions below).
+- A wake-on-matter device flashed and connected via the running `cpcd`
+  instance.
+- A second Matter accessory (e.g. the `lighting-app`) in commissioning mode
+  (BLE advertising), reachable with the standard test setup pin `20202021`
+  and discriminator `3840`.
+
+Additionally you can run the `scripts/verify_install.sh`
+
 ## Wake on Matter configuration
 
 This sample app allows subscriptions to another Matter device through a NCP attached to a raspberry pi. 
@@ -65,32 +93,6 @@ Important detail:
         Active wake-up triggers (1):
         cluster=0x00000006 attribute=0x00000000 mode=Boolean(0) operand=0x0000000000000001
     ```
-
-## Prerequisites
-
-Host packages (Ubuntu):
-
-```sh
-sudo apt-get install net-tools     # provides ifconfig, required by verify_install.sh
-```
-
-Silabs services running on the host:
-
-- `cpcd.service` ([CPC daemon](https://docs.silabs.com/multiprotocol/latest/multiprotocol-solution-linux/building-cpcd-locally) bridging the NCP) 
-- `otbr-agent.service` ([OpenThread Border Router agent](https://docs.silabs.com/multiprotocol/latest/multiprotocol-solution-linux/building-otbr-locally))
-- Bluetooth [HCI bridge](https://docs.silabs.com/multiprotocol/latest/multiprotocol-solution-linux/building-bluetooth-host-locally) (optional)
-- A committed active OT dataset (`sudo ot-ctl dataset init new` then
-  `sudo ot-ctl dataset commit active` if none is present)
-
-Matter tools:
-
-- `chip-tool` on `PATH` (built from the connectedhomeip tree).
-- `mmic_host` on `PATH` (build instructions below).
-- A wake-on-matter device flashed and connected via the running `cpcd`
-  instance.
-- A second Matter accessory (e.g. the `lighting-app`) in commissioning mode
-  (BLE advertising), reachable with the standard test setup pin `20202021`
-  and discriminator `3840`.
 
 ## Testing / End-to-end validation
 
